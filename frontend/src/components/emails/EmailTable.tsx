@@ -168,7 +168,7 @@ const EmailTable: React.FC<EmailTableProps> = ({ userId, initialEmails = [] }) =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [liveSearch, setLiveSearch] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDir }>({ key: 'date', direction: 'desc' });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
