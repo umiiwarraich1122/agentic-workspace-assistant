@@ -92,8 +92,15 @@ class TokenManager:
         
         access_token = tokens.get("access_token")
         refresh_token = tokens.get("refresh_token")
-        acquired_at = tokens.get("acquired_at", 0)
-        expires_in = tokens.get("expires_in", 3600)
+        
+        # Parse acquired_at (might be missing in Supabase, fallback to 0 or use updated_at if needed)
+        acquired_at = tokens.get("acquired_at")
+        if acquired_at is None:
+            acquired_at = 0
+            
+        expires_in = tokens.get("expires_in")
+        if expires_in is None:
+            expires_in = 3600
         
         # Check if token is near expiration (within 60 seconds of expiry)
         is_expired = False
