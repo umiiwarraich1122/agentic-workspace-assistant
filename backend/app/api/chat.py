@@ -77,7 +77,7 @@ async def chat(request: ChatRequest):
         access_token = await TokenManager.get_access_token(request.user_id)
     except Exception as e:
         logger.error(f"Error fetching token: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=401, detail="Authentication error")
+        raise HTTPException(status_code=401, detail=f"Auth error: {str(e)}")
 
     # Generate a thread ID if one wasn't provided or is invalid
     thread_id = request.thread_id
