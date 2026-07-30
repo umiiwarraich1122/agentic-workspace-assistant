@@ -7,7 +7,7 @@ import { CyberInput } from '../components/ui/CyberInput';
 import { AICore } from '../components/os/AICore';
 import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
-import { Plus, MessageSquare, Loader2, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, MessageSquare, Loader2, RefreshCw, Trash2, LogOut } from 'lucide-react';
 
 const SUGGESTIONS = [
   'Schedule a meeting for tomorrow',
@@ -355,6 +355,16 @@ export function CommandCenter() {
               </div>
             ))
           )}
+        </div>
+        
+        <div className="p-4 border-t border-cyan-900/30">
+           <button 
+            onClick={useAuth().logout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-900/50 transition-colors text-xs font-mono text-red-400"
+          >
+            <LogOut className="w-3 h-3" />
+            Logout Account
+          </button>
         </div>
       </aside>
 
