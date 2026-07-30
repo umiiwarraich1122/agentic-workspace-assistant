@@ -120,10 +120,10 @@ export function LandingOS() {
                     </div>
                   </GlowingButton>
 
-                  {/* Gmail & Password Quick Login Card */}
+                  {/* Sign Up Form */}
                   <form onSubmit={handleFormLogin} className="w-full bg-cyan-950/30 border border-cyan-500/30 backdrop-blur-xl p-6 rounded-2xl space-y-4 shadow-[0_0_30px_rgba(6,182,212,0.15)]">
                     <div className="text-left">
-                      <label className="text-xs font-mono text-cyan-400 block mb-1 uppercase tracking-wider">Gmail Address</label>
+                      <label className="text-xs font-mono text-cyan-400 block mb-1 uppercase tracking-wider">New Gmail Address</label>
                       <input 
                         type="email"
                         required
@@ -135,7 +135,7 @@ export function LandingOS() {
                     </div>
                     
                     <div className="text-left">
-                      <label className="text-xs font-mono text-cyan-400 block mb-1 uppercase tracking-wider">Password</label>
+                      <label className="text-xs font-mono text-cyan-400 block mb-1 uppercase tracking-wider">Create Password</label>
                       <input 
                         type="password"
                         required
@@ -150,7 +150,7 @@ export function LandingOS() {
                       type="submit"
                       className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl font-bold font-mono text-sm tracking-wider uppercase hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(6,182,212,0.4)] cursor-pointer"
                     >
-                      Authenticate Account
+                      Create Secure Account
                     </button>
                   </form>
                 </div>
