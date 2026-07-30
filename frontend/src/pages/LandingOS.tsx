@@ -54,7 +54,9 @@ export function LandingOS() {
   const handleGoogleLogin = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    window.location.assign('http://localhost:8000/auth/login');
+    import('../services/api').then(({ api }) => {
+      window.location.assign(`${api.defaults.baseURL}/auth/login`);
+    });
   };
 
   const handleFormLogin = (e: React.FormEvent) => {

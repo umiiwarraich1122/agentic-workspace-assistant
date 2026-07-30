@@ -18,11 +18,11 @@ export function LandingPage() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    // In a real flow, this redirects to the backend oauth endpoint
-    // window.location.href = import.meta.env.VITE_API_URL + '/auth/login';
-    // For now, redirecting to the actual backend:
-    window.location.href = 'http://localhost:8000/auth/login';
+  const handleLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    import('../services/api').then(({ api }) => {
+      window.location.href = `${api.defaults.baseURL}/auth/login`;
+    });
   };
 
   const handleGoToChat = () => {
