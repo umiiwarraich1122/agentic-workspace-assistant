@@ -5,6 +5,8 @@ class ChatRequest(BaseModel):
     user_id: str
     thread_id: str
     message: str
+    local_time: Optional[str] = None
+    timezone: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str

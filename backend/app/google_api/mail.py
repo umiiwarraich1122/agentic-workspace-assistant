@@ -90,10 +90,12 @@ async def get_email(client: GoogleClient, message_id: str):
         logger.warning(f"Failed to fetch detail for email {message_id}: {e}")
         return None
 
-async def draft_email(client: GoogleClient, subject: str, body: str, to_recipients: list):
+async def draft_email(client: GoogleClient, subject: str, body: str, to_recipients: list, sender_email: str = None):
     """Draft a new email in Gmail."""
     mime_message = EmailMessage()
     mime_message["To"] = ", ".join(to_recipients)
+    if sender_email:
+        mime_message["From"] = sender_email
     mime_message["Subject"] = subject
     mime_message.set_content(body)
     

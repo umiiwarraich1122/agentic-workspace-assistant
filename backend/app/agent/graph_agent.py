@@ -12,7 +12,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-def build_graph(access_token: str, user_id: str):
+def build_graph(access_token: str, user_id: str, local_time: str = None, timezone: str = None):
     # Initialize tools with the user's access token
     tools = [
         *get_mail_tools(access_token, user_id),
@@ -54,7 +54,9 @@ def build_graph(access_token: str, user_id: str):
             return {"messages": [AIMessage(content="Error: Language model is not configured properly.")]}
             
         from langchain_core.messages import SystemMessage
-        system_prompt = SystemMessage(content="You are Mr. Jarvis, an AI Assistant. You have tools for Gmail, Calendar, and Tasks. You MUST use tools to execute requests. IMPORTANT: 1. You may respond in normal plain text for conversational replies and email drafts. 2. ONLY when displaying a list of emails from the database, you MUST output a JSON object with an 'emails' array. 3. When drafting an email, FIRST call the create_email_draft tool, then output the draft in plain text using this EXACT format: '📧 Email 1\\n\\nTo:\\n<recipient>\\n\\nSubject:\\n<subject>\\n\\nBody:\\n<body>'. 4. Be extremely concise to save tokens.")
+        
+        time_context = f" The user's current device time is {local_time} in the {timezone} timezone. You MUST use this exact time as your reference point whenever resolving relative dates like 'tomorrow', 'next week', or 'at 5pm'." if local_time else ""
+        system_prompt = SystemMessage(content="You are Mr. Jarvis, an AI Assistant. You have tools for Gmail, Calendar, and Tasks. You MUST use tools to execute requests. IMPORTANT: 1. You may respond in normal plain text for conversational replies and email drafts. 2. ONLY when displaying a list of emails from the database, you MUST output a JSON object with an 'emails' array. 3. When drafting an email, FIRST call the create_email_draft tool, then output the draft in plain text using this EXACT format: '📧 Email 1\\n\\nTo:\\n<recipient>\\n\\nSubject:\\n<subject>\\n\\nBody:\\n<body>'. 4. Be extremely concise to save tokens." + time_context)
         
         # Keep only recent messages to prevent token quota exceeded (429) errors
         recent_messages = messages[-6:] if len(messages) > 6 else messages

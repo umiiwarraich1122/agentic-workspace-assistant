@@ -73,9 +73,9 @@ async def read_email(message_id: str, client: GoogleClient = Depends(get_google_
     return await get_email(client, message_id)
 
 @router.post("/draft")
-async def create_draft(request: EmailDraftRequest, client: GoogleClient = Depends(get_google_client)):
+async def create_draft(request: EmailDraftRequest, x_user_id: Optional[str] = Header(None), client: GoogleClient = Depends(get_google_client)):
     """Draft a new email in Gmail."""
-    return await draft_email(client, request.subject, request.body, request.to_recipients)
+    return await draft_email(client, request.subject, request.body, request.to_recipients, sender_email=x_user_id)
 
 @router.post("/{message_id}/modify")
 async def modify_email(message_id: str, request: ModifyEmailRequest, client: GoogleClient = Depends(get_google_client)):

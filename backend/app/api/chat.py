@@ -93,7 +93,7 @@ async def chat(request: ChatRequest):
     thread_state["access_token"] = access_token
 
     try:
-        agent = build_graph(access_token, request.user_id)
+        agent = build_graph(access_token, request.user_id, request.local_time, request.timezone)
         result = await agent.ainvoke(thread_state)
         
         final_message = result["messages"][-1].content

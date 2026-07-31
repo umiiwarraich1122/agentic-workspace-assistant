@@ -9,10 +9,15 @@ export const api = axios.create({
 
 export const chatService = {
   sendMessage: async (userId: string, threadId: string, message: string) => {
+    const local_time = new Date().toLocaleString();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
     const response = await api.post('/chat', {
       user_id: userId,
       thread_id: threadId,
       message,
+      local_time,
+      timezone
     });
     return response.data;
   },
