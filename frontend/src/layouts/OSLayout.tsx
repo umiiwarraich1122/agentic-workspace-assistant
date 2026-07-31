@@ -19,6 +19,13 @@ export function OSLayout() {
     navigate('/');
   };
 
+  React.useEffect(() => {
+    // Auto-sync emails in the background when logging in
+    import('../services/api').then(({ api }) => {
+      api.get('/emails/sync').catch(console.error);
+    });
+  }, []);
+
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/chat' },
     { icon: Mail, label: 'Emails', path: '/chat/emails' },
