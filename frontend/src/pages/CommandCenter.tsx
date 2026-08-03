@@ -241,6 +241,14 @@ export function CommandCenter() {
       setAttachedDocumentId(null);
       setAttachedFilename(null);
       
+      // If a file was uploaded, manually trigger the 'files' department 
+      // because RAG context injection doesn't use a LangGraph tool node.
+      if (currentDocId) {
+        setTimeout(() => {
+          OfficeTaskEngine.dispatchToolTask('files_upload');
+        }, 300); // slight delay to let agent stand up first
+      }
+
       const response = await chatService.sendMessageStream(
         user.userId, 
         activeThreadId, 

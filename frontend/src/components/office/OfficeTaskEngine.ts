@@ -75,7 +75,8 @@ const TOOL_TO_DEPT: Record<string, Department> = {
   'get_calendar_events': 'calendar',
   'create_calendar_event': 'calendar',
   'list_tasks': 'tasks',
-  'create_task': 'tasks'
+  'create_task': 'tasks',
+  'files_upload': 'files'
 };
 
 class OfficeTaskEngineClass {
@@ -108,9 +109,10 @@ class OfficeTaskEngineClass {
   }
 
   async dispatchTask(prompt: string): Promise<void> {
+    const dept = classifyDepartment(prompt);
     const task: OfficeTask = {
-      id: crypto.randomUUID(), prompt, department: 'neural', agentId: null, // default to neural until tool known
-      status: 'queued', progressSteps: DEPT_PROGRESS['neural'], currentStep: 0,
+      id: crypto.randomUUID(), prompt, department: dept, agentId: null,
+      status: 'queued', progressSteps: DEPT_PROGRESS[dept], currentStep: 0,
     };
     const agentId = this.getAvailableAgent();
     if (!agentId) {
@@ -119,23 +121,35 @@ class OfficeTaskEngineClass {
       return;
     }
     this.emit({ type: 'TASK_QUEUED', task });
-    this.runAgentStandby(agentId, task);
+    this.runAgentTask(agentId, task);
   }
 
-  private async runAgentStandby(agentId: AgentId, task: OfficeTask) {
+  private async runAgentTask(agentId: AgentId, task: OfficeTask) {
     task.agentId = agentId;
     task.status = 'in_progress';
     this.activeTasks.set(agentId, task.id);
     this.cancelTokens.set(agentId, false);
 
-    // ── Stand up and wait for tool
+    // ── Stand up (fast)
     this.agents[agentId].state = 'standing';
     this.emit({ type: 'AGENT_ASSIGNED', taskId: task.id, agentId });
-    
-    // Cycle general neural thinking until cancelled or redirected
+    await delay(250);
+    if (this.cancelTokens.get(agentId)) return;
+
+    // ── Walk to guessed department
+    this.agents[agentId].state = 'walking_to_dept';
+    this.agents[agentId].currentDept = task.department;
+    this.emit({ type: 'AGENT_WALKING', agentId, destination: task.department });
+    await delay(900);
+    if (this.cancelTokens.get(agentId)) return;
+
+    // ── Working + cycling progress steps
+    this.agents[agentId].state = 'working';
+    this.emit({ type: 'AGENT_WORKING', agentId, dept: task.department });
+
     let stepIdx = 0;
-    while (!this.cancelTokens.get(agentId) && this.agents[agentId].state === 'standing') {
-      const step = DEPT_PROGRESS['neural'][stepIdx % DEPT_PROGRESS['neural'].length];
+    while (!this.cancelTokens.get(agentId) && this.agents[agentId].state === 'working') {
+      const step = task.progressSteps[stepIdx % task.progressSteps.length];
       this.emit({ type: 'PROGRESS_STEP', agentId, step });
       await delay(380);
       stepIdx++;
@@ -143,34 +157,40 @@ class OfficeTaskEngineClass {
   }
 
   async dispatchToolTask(toolName: string) {
-    // Find the first agent standing (waiting for a tool)
     let targetAgent: AgentId | null = null;
-    let activeTask: string | null = null;
+    
+    // Find an active agent
     for (const [id, agent] of Object.entries(this.agents)) {
-      if (agent.state === 'standing') {
+      if (['standing', 'walking_to_dept', 'working'].includes(agent.state)) {
         targetAgent = id as AgentId;
-        activeTask = this.activeTasks.get(targetAgent) || null;
         break;
       }
     }
     
-    if (!targetAgent) return; // Agent might already be walking/working from a previous tool in this stream
+    if (!targetAgent) return;
 
-    const dept = TOOL_TO_DEPT[toolName] || 'neural';
+    const targetDept = TOOL_TO_DEPT[toolName] || 'neural';
+    const agent = this.agents[targetAgent];
     
-    // ── Walk to department
+    // If they are already going to or at the correct department, do nothing
+    if (agent.currentDept === targetDept) return;
+    
+    // Otherwise, redirect them!
+    this.cancelTokens.set(targetAgent, true); // stop their current work loop
+    await delay(50); // let loop exit
+    this.cancelTokens.set(targetAgent, false); // re-enable for new loop
+
     this.agents[targetAgent].state = 'walking_to_dept';
-    this.agents[targetAgent].currentDept = dept;
-    this.emit({ type: 'AGENT_WALKING', agentId: targetAgent, destination: dept });
+    this.agents[targetAgent].currentDept = targetDept;
+    this.emit({ type: 'AGENT_WALKING', agentId: targetAgent, destination: targetDept });
     await delay(900);
     if (this.cancelTokens.get(targetAgent)) return;
 
-    // ── Working + cycling progress steps
     this.agents[targetAgent].state = 'working';
-    this.emit({ type: 'AGENT_WORKING', agentId: targetAgent, dept });
+    this.emit({ type: 'AGENT_WORKING', agentId: targetAgent, dept: targetDept });
 
     let stepIdx = 0;
-    const progressSteps = DEPT_PROGRESS[dept];
+    const progressSteps = DEPT_PROGRESS[targetDept];
     while (!this.cancelTokens.get(targetAgent) && this.agents[targetAgent].state === 'working') {
       const step = progressSteps[stepIdx % progressSteps.length];
       this.emit({ type: 'PROGRESS_STEP', agentId: targetAgent, step });
@@ -181,19 +201,29 @@ class OfficeTaskEngineClass {
 
   /** Called when the backend response arrives — immediately transitions agent out */
   async onTaskComplete(agentId: AgentId) {
+    // If they are walking, wait for them to arrive and work for at least a little bit
+    if (this.agents[agentId].state === 'walking_to_dept') {
+      await delay(900);
+      await delay(600); // work for a bit
+    } else if (this.agents[agentId].state === 'working') {
+      await delay(600); // let them finish their current thought
+    }
+
     // Cancel the cycling loop instantly
     this.cancelTokens.set(agentId, true);
-    await delay(80); // let the loop exit
-
+    
+    // ── Celebrate
     this.agents[agentId].state = 'celebrating';
     this.emit({ type: 'AGENT_CELEBRATING', agentId });
-    await delay(500);
+    await delay(1200);
 
+    // ── Return to desk
     this.agents[agentId].state = 'walking_back';
     this.emit({ type: 'AGENT_RETURNING', agentId });
     await delay(900);
 
-    this.agents[agentId].state = 'sitting';
+    // ── Idle
+    this.agents[agentId].state = 'idle';
     this.agents[agentId].currentDept = null;
     const taskId = this.activeTasks.get(agentId) || '';
     this.activeTasks.delete(agentId);
@@ -203,9 +233,16 @@ class OfficeTaskEngineClass {
     this.agents[agentId].state = 'idle';
 
     // Process queue
+    this.processQueue();
+  }
+
+  private processQueue() {
     if (this.taskQueue.length > 0) {
-      const next = this.taskQueue.shift()!;
-      this.runAgentTask(agentId, next);
+      const agentId = this.getAvailableAgent();
+      if (agentId) {
+        const next = this.taskQueue.shift()!;
+        this.runAgentTask(agentId, next);
+      }
     }
   }
 }
