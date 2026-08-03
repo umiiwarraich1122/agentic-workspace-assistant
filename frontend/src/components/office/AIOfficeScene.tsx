@@ -261,7 +261,7 @@ export function AIOfficeScene({ isThinking }: { isThinking: boolean }) {
       {/* ─── Activity Log ─── */}
       <div
         ref={logRef}
-        className="w-full px-4 py-2 h-14 overflow-y-auto scrollbar-hide rounded-xl border border-cyan-900/20 bg-black/40 backdrop-blur-md flex flex-col gap-0.5"
+        className="w-full px-4 py-2 h-14 overflow-y-auto scrollbar-hide rounded-xl border border-cyan-900/20 bg-transparent flex flex-col gap-0.5"
       >
         <div className="text-[8px] font-mono text-cyan-700 uppercase tracking-widest mb-0.5">// Activity Log</div>
         <AnimatePresence initial={false}>

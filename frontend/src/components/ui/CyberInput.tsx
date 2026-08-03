@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Mic, Send, Paperclip, X, FileText } from 'lucide-react';
+import { Send, Paperclip, X, FileText } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 interface CyberInputProps {
@@ -56,17 +56,6 @@ export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, a
           onChange={handleFileChange}
           accept=".pdf,.txt"
         />
-        <button 
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading || !!attachedFilename}
-          className="p-3 text-gray-500 hover:text-cyan-400 transition-colors flex-shrink-0 disabled:opacity-50"
-        >
-          {isUploading ? (
-            <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Paperclip className="w-5 h-5" />
-          )}
-        </button>
         
         <textarea
           value={value}
@@ -75,15 +64,23 @@ export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, a
           placeholder="What would you like me to do today?"
           className={cn(
             "flex-1 bg-transparent border-none resize-none focus:outline-none focus:ring-0",
-            "text-gray-100 placeholder-gray-600 py-3 max-h-32 min-h-[48px] overflow-y-auto",
+            "text-gray-100 placeholder-gray-600 py-3 pl-3 max-h-32 min-h-[48px] overflow-y-auto",
             "font-mono text-sm sm:text-base tracking-tight"
           )}
           rows={1}
         />
         
         <div className="flex items-center gap-2">
-          <button className="p-3 text-gray-500 hover:text-cyan-400 transition-colors flex-shrink-0">
-            <Mic className="w-5 h-5" />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading || !!attachedFilename}
+            className="p-3 text-gray-500 hover:text-cyan-400 transition-colors flex-shrink-0 disabled:opacity-50"
+          >
+            {isUploading ? (
+              <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Paperclip className="w-5 h-5" />
+            )}
           </button>
           <motion.button
             whileHover={{ scale: 1.05 }}

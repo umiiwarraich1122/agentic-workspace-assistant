@@ -12,10 +12,10 @@ import { AIOfficeScene } from '../components/office/AIOfficeScene';
 import { OfficeTaskEngine } from '../components/office/OfficeTaskEngine';
 
 const SUGGESTIONS = [
+  'What is the top news today?',
   'Schedule a meeting for tomorrow',
   'Summarize my unread emails',
   'Create a task to finalize roadmaps',
-  'Show me my calendar today',
 ];
 
 // ─── Markdown link helper ─────────────────────────────────────────────────────
