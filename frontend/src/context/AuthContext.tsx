@@ -31,9 +31,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    if (user) {
+      import('../services/api').then(({ chatService }) => {
+        chatService.clearSyncedData(user.userId).catch(console.error);
+      });
+    }
     setUser(null);
     localStorage.removeItem('jarvis_user');
-  }, []);
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading }}>

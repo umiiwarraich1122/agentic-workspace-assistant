@@ -7,7 +7,9 @@ import { CyberInput } from '../components/ui/CyberInput';
 import { AICore } from '../components/os/AICore';
 import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
-import { Plus, MessageSquare, Loader2, RefreshCw, Trash2, LogOut } from 'lucide-react';
+import { Plus, MessageSquare, RefreshCw, Trash2, LogOut } from 'lucide-react';
+import { AIOfficeScene } from '../components/office/AIOfficeScene';
+import { OfficeTaskEngine } from '../components/office/OfficeTaskEngine';
 
 const SUGGESTIONS = [
   'Schedule a meeting for tomorrow',
@@ -191,10 +193,22 @@ export function CommandCenter() {
     setInput('');
     setAiState('thinking');
 
+    // 🏢 Dispatch task to AI Office – agents will animate while waiting for response
+    OfficeTaskEngine.dispatchTask(userMsg.content);
+
     try {
       const response = await chatService.sendMessage(user.userId, activeThreadId, userMsg.content);
 
       setAiState('speaking');
+
+      // 🏢 Complete ALL active agents (working / walking / standing) so none get stuck
+      const agentIds: Array<'cipher' | 'nexus' | 'echo'> = ['cipher', 'nexus', 'echo'];
+      for (const aid of agentIds) {
+        const ag = OfficeTaskEngine.getAgents()[aid];
+        if (ag.state !== 'idle' && ag.state !== 'sitting') {
+          OfficeTaskEngine.onTaskComplete(aid);
+        }
+      }
 
       let plainTextContent = 'No response received.';
       let parsedData: StructuredAIResponse | undefined = undefined;
@@ -369,16 +383,18 @@ export function CommandCenter() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col relative h-full">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-0">
-          <AICore state={aiState} />
+      <div className="flex-1 flex flex-col relative h-full overflow-hidden">
+
+        {/* 🏢 AI Office Scene – replaces static spinner */}
+        <div className="flex-shrink-0 border-b border-cyan-900/30 bg-gray-950/60 backdrop-blur-xl">
+          <AIOfficeScene isThinking={aiState === 'thinking'} />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-10 z-10 scrollbar-hide space-y-12">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 z-10 scrollbar-hide space-y-8">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center">
-               <h2 className="text-2xl font-mono text-cyan-400 tracking-[0.2em] mb-4">JARVIS ONLINE</h2>
-               <p className="text-sm text-gray-400 max-w-sm">Awaiting your command. I am synced with your database.</p>
+               <h2 className="text-2xl font-mono text-cyan-400 tracking-[0.2em] mb-4">MR. Jarvis</h2>
+               <p className="text-sm text-gray-400 max-w-sm">Awaiting your command. My agents are standing by.</p>
             </div>
           ) : (
             <AnimatePresence initial={false}>
@@ -432,28 +448,7 @@ export function CommandCenter() {
             </AnimatePresence>
           )}
 
-          {aiState === 'thinking' && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start w-full"
-            >
-              <div className="rounded-2xl px-6 py-4 bg-purple-900/30 border border-purple-500/40 backdrop-blur-2xl shadow-[0_0_30px_rgba(168,85,247,0.15)]">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-6 h-6">
-                    <div className="absolute inset-0 border-2 border-purple-500/30 rounded-full" />
-                    <div className="absolute inset-0 border-2 border-purple-400 rounded-full border-t-transparent animate-spin" />
-                  </div>
-                  <div className="font-mono text-sm text-purple-300 tracking-widest uppercase flex">
-                    Analyzing Directive
-                    <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>.</motion.span>
-                    <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}>.</motion.span>
-                    <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.4 }}>.</motion.span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
+          {/* Old spinner removed – AI Office Scene handles visual feedback */}
           <div ref={messagesEndRef} className="h-10" />
         </div>
 

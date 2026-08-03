@@ -9,7 +9,11 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
     
-    OPENROUTER_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    CEREBRAS_API_KEY: str = ""
+    
+    OLLAMA_BASE_URL: str = "http://localhost:11434/v1"
+    OLLAMA_MODEL: str = "llama3.2:latest"
     
     FRONTEND_URL: str = "http://localhost:5173"
     

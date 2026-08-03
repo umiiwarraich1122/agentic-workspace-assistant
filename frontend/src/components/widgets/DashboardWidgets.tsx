@@ -62,9 +62,9 @@ export function UnreadEmailsWidget() {
 
   useEffect(() => {
     if (user?.userId) {
-      googleService.getEmails(user.userId)
+      googleService.getEmails(user.userId, 'is:unread')
         .then(data => {
-          if (data && Array.isArray(data.emails)) setEmails(data.emails.slice(0, 4));
+          if (data && Array.isArray(data.emails)) setEmails(data.emails.slice(0, 5));
           else setEmails([]); 
         })
         .catch(() => setEmails([]))

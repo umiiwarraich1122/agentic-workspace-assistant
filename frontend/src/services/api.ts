@@ -36,6 +36,9 @@ export const chatService = {
     
     await Promise.all([p1, p2, p3]);
     return { status: "success" };
+  },
+  clearSyncedData: async (userId: string) => {
+    return api.delete('/emails/sync', { headers: { 'X-User-Id': userId } }).catch(e => console.error("Clear sync err", e));
   }
 };
 
