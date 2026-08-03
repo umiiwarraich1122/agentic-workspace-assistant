@@ -42,7 +42,7 @@ const DEPT_KEYWORDS: Record<Department, string[]> = {
   gmail:    ['email', 'mail', 'gmail', 'inbox', 'message', 'send', 'draft', 'unread', 'compose'],
   calendar: ['schedule', 'meeting', 'calendar', 'appointment', 'event', 'tomorrow', 'book', 'plan'],
   tasks:    ['task', 'todo', 'directive', 'checklist', 'reminder', 'finalize', 'roadmap', 'create task', 'add task'],
-  browser:  ['search', 'research', 'find', 'lookup', 'browse', 'web', 'internet', 'livekit'],
+  browser:  ['search', 'research', 'find', 'lookup', 'browse', 'web', 'internet', 'livekit', 'news', 'headlines', 'bbc'],
   files:    ['file', 'document', 'upload', 'storage', 'folder', 'download', 'save', 'pdf'],
   neural:   ['ai', 'model', 'neural', 'train', 'analyze', 'process', 'summarize', 'generate'],
 };

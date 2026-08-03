@@ -8,7 +8,7 @@ def get_latest_news() -> str:
     """Fetch the latest top news headlines and summaries from BBC News. Use this tool when the user asks about today's news, current events, or what is happening in the world."""
     url = "http://feeds.bbci.co.uk/news/rss.xml"
     try:
-        response = httpx.get(url, timeout=10.0)
+        response = httpx.get(url, timeout=10.0, follow_redirects=True)
         response.raise_for_status()
         
         root = ET.fromstring(response.text)
