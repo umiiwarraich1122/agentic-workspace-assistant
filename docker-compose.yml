@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # The FastAPI Backend Server
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mr-jarvis-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    # Overrides CMD in Dockerfile if you want hot-reload in development
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: always
+
+  # The LiveKit Voice Agent Worker
+  backend-livekit:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mr-jarvis-livekit
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    # Override the default command to start the LiveKit worker instead of FastAPI
+    command: python -m livekit_agent.agent start
+    restart: always
