@@ -29,10 +29,21 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     openai_key = os.getenv("OPENAI_API_KEY") or settings.OPENAI_API_KEY
     cerebras_key = os.getenv("CEREBRAS_API_KEY") or settings.CEREBRAS_API_KEY
     openrouter_key = os.getenv("OPENROUTER_API_KEY") or settings.OPENROUTER_API_KEY
+    groq_key = os.getenv("GROQ_API_KEY") or getattr(settings, 'GROQ_API_KEY', None)
 
     model = None
 
-    if openrouter_key:
+    if groq_key:
+        logger.info("Using Groq llama-3.1-8b-instant")
+        model = ChatOpenAI(
+            model="llama-3.1-8b-instant",
+            temperature=0,
+            api_key=groq_key,
+            base_url="https://api.groq.com/openai/v1",
+            timeout=30.0,
+            max_retries=2
+        )
+    elif openrouter_key:
         logger.info("Using OpenRouter")
         model = ChatOpenAI(
             model="openrouter/free",
