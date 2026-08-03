@@ -58,6 +58,21 @@ async def get_threads(user_id: str):
             
     return {"threads": list(threads.values())}
 
+@router.get("/threads/{thread_id}")
+async def get_thread_messages(thread_id: str):
+    """Get all messages for a specific chat thread."""
+    supabase = get_supabase()
+    response = supabase.table("conversations").select("role, content, created_at").eq("thread_id", thread_id).order("created_at").execute()
+    
+    messages = []
+    for msg in response.data:
+        messages.append({
+            "sender": "user" if msg["role"] == "user" else "ai",
+            "content": msg["content"],
+            "timestamp": msg["created_at"]
+        })
+    return {"messages": messages}
+
 @router.delete("/threads/{thread_id}")
 async def delete_thread(thread_id: str):
     """Delete a specific chat thread permanently."""

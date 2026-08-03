@@ -160,14 +160,34 @@ export function CommandCenter() {
     setMessages([]);
   };
 
-  const loadChat = (threadId: string) => {
+  const loadChat = async (threadId: string) => {
     setActiveThreadId(threadId);
-    setMessages([{
-      id: crypto.randomUUID(),
-      sender: 'ai',
-      content: 'Resumed conversation. How can I continue to help you?',
-      timestamp: new Date()
-    }]);
+    try {
+      const data = await chatService.getThreadMessages(threadId);
+      if (data.messages && data.messages.length > 0) {
+        setMessages(data.messages.map((m: any) => ({
+          id: crypto.randomUUID(),
+          sender: m.sender,
+          content: m.content,
+          timestamp: new Date(m.timestamp)
+        })));
+      } else {
+        setMessages([{
+          id: crypto.randomUUID(),
+          sender: 'ai',
+          content: 'Resumed conversation. How can I continue to help you?',
+          timestamp: new Date()
+        }]);
+      }
+    } catch (e) {
+      console.error("Failed to load messages", e);
+      setMessages([{
+        id: crypto.randomUUID(),
+        sender: 'ai',
+        content: 'Failed to load conversation history.',
+        timestamp: new Date()
+      }]);
+    }
   };
 
   const scrollToBottom = () => {

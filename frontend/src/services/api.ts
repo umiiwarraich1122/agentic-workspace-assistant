@@ -25,6 +25,10 @@ export const chatService = {
     const response = await api.get('/chat/threads', { params: { user_id: userId } });
     return response.data;
   },
+  getThreadMessages: async (threadId: string) => {
+    const response = await api.get(`/chat/threads/${threadId}`);
+    return response.data;
+  },
   deleteThread: async (threadId: string) => {
     const response = await api.delete(`/chat/threads/${threadId}`);
     return response.data;
