@@ -60,11 +60,11 @@ async def create_event(client: GoogleClient, subject: str, start_time: str, end_
     if attendees:
         payload["attendees"] = [{"email": a} for a in attendees]
         
-    return await client.post(CALENDAR_BASE, json=payload)
+    return await client.post(CALENDAR_BASE + "?sendUpdates=all", json=payload)
 
 async def update_event(client: GoogleClient, event_id: str, updates: dict):
     """Update an existing event in Google Calendar."""
-    url = f"{CALENDAR_BASE}/{event_id}"
+    url = f"{CALENDAR_BASE}/{event_id}?sendUpdates=all"
     payload = {}
     if "subject" in updates:
         payload["summary"] = updates["subject"]
@@ -79,7 +79,7 @@ async def update_event(client: GoogleClient, event_id: str, updates: dict):
 
 async def delete_event(client: GoogleClient, event_id: str):
     """Delete an event from Google Calendar."""
-    url = f"{CALENDAR_BASE}/{event_id}"
+    url = f"{CALENDAR_BASE}/{event_id}?sendUpdates=all"
     try:
         await client.delete(url)
         return {"status": "success", "message": "Event deleted successfully"}
