@@ -7,6 +7,7 @@ class ChatRequest(BaseModel):
     message: str
     local_time: Optional[str] = None
     timezone: Optional[str] = None
+    attached_document_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str

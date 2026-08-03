@@ -8,7 +8,7 @@ export const api = axios.create({
 });
 
 export const chatService = {
-  sendMessage: async (userId: string, threadId: string, message: string) => {
+  sendMessage: async (userId: string, threadId: string, message: string, attachedDocumentId?: string) => {
     const local_time = new Date().toLocaleString();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     
@@ -17,7 +17,19 @@ export const chatService = {
       thread_id: threadId,
       message,
       local_time,
-      timezone
+      timezone,
+      attached_document_id: attachedDocumentId
+    });
+    return response.data;
+  },
+  uploadFile: async (userId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_id', userId);
+    const response = await api.post('/chat/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return response.data;
   },

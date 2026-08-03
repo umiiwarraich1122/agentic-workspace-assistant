@@ -84,6 +84,35 @@ async def delete_thread(thread_id: str):
         logger.error(f"Error deleting thread: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete thread")
 
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+import PyPDF2
+from io import BytesIO
+
+@router.post("/upload")
+async def upload_document(file: UploadFile = File(...), user_id: str = Form(...)):
+    """Upload a document to inject into the AI context."""
+    try:
+        content = ""
+        file_bytes = await file.read()
+        
+        if file.filename.endswith(".pdf"):
+            pdf = PyPDF2.PdfReader(BytesIO(file_bytes))
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    content += text + "\n"
+        else:
+            content = file_bytes.decode("utf-8", errors="ignore")
+            
+        doc_id = str(uuid.uuid4())
+        from app.services.memory_store import store
+        store.save_document(doc_id, file.filename, content)
+        
+        return {"document_id": doc_id, "filename": file.filename}
+    except Exception as e:
+        logger.error(f"Error uploading document: {e}")
+        raise HTTPException(status_code=500, detail="Failed to parse document")
+
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Send a message to the Jarvis AI Assistant."""
@@ -106,6 +135,15 @@ async def chat(request: ChatRequest):
     thread_state = get_thread_state(thread_id)
     thread_state["user_id"] = request.user_id
     thread_state["access_token"] = access_token
+
+    # Handle document context injection (RAG)
+    if request.attached_document_id:
+        from app.services.memory_store import store
+        doc = store.get_document(request.attached_document_id)
+        if doc and thread_state["messages"] and isinstance(thread_state["messages"][-1], HumanMessage):
+            original_content = thread_state["messages"][-1].content
+            injected_content = f"[Attached Document: {doc['filename']}]\n\n{doc['content']}\n\nUser Message:\n{original_content}"
+            thread_state["messages"][-1].content = injected_content
 
     try:
         agent = build_graph(access_token, request.user_id, request.local_time, request.timezone)

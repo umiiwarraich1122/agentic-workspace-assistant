@@ -4,6 +4,7 @@ from app.agent.state import AgentState
 from app.tools.mail_tools import get_mail_tools
 from app.tools.calendar_tools import get_calendar_tools
 from app.tools.todo_tools import get_todo_tools
+from app.tools.web_tools import get_web_tools
 from app.config import settings
 from langgraph.prebuilt import ToolNode
 import logging
@@ -17,7 +18,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     tools = [
         *get_mail_tools(access_token, user_id),
         *get_calendar_tools(access_token, user_id),
-        *get_todo_tools(access_token, user_id)
+        *get_todo_tools(access_token, user_id),
+        *get_web_tools()
     ]
     
     # Model selection logic:

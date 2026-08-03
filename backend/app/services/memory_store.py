@@ -10,6 +10,8 @@ class MemoryStore:
         self._user_tokens: Dict[str, Dict[str, Any]] = self._load_tokens()
         # Store conversational history / graph states (e.g. thread_id -> state)
         self._thread_states: Dict[str, Any] = {}
+        # Store temporary uploaded documents (e.g. doc_id -> content string)
+        self._documents: Dict[str, Dict[str, str]] = {}
 
     def _load_tokens(self) -> Dict[str, Dict[str, Any]]:
         if os.path.exists(self._tokens_file):
@@ -52,6 +54,12 @@ class MemoryStore:
         if not hasattr(self, "_hidden_events"):
             self._hidden_events = {}
         return self._hidden_events.get(user_id, [])
+
+    def save_document(self, doc_id: str, filename: str, content: str) -> None:
+        self._documents[doc_id] = {"filename": filename, "content": content}
+
+    def get_document(self, doc_id: str) -> Optional[Dict[str, str]]:
+        return self._documents.get(doc_id)
 
 # Singleton instance for the application
 store = MemoryStore()

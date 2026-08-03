@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Mic, Send, Paperclip } from 'lucide-react';
+import { Mic, Send, Paperclip, X, FileText } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 interface CyberInputProps {
@@ -8,9 +8,15 @@ interface CyberInputProps {
   onChange: (v: string) => void;
   onSend: () => void;
   isLoading?: boolean;
+  onFileUpload?: (file: File) => void;
+  attachedFilename?: string | null;
+  onRemoveAttachment?: () => void;
+  isUploading?: boolean;
 }
 
-export function CyberInput({ value, onChange, onSend, isLoading }: CyberInputProps) {
+export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, attachedFilename, onRemoveAttachment, isUploading }: CyberInputProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -18,14 +24,48 @@ export function CyberInput({ value, onChange, onSend, isLoading }: CyberInputPro
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onFileUpload) {
+      onFileUpload(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
-    <div className="relative group">
+    <div className="relative group flex flex-col gap-2">
+      {/* Attachment Indicator */}
+      {attachedFilename && (
+        <div className="flex items-center gap-2 self-start px-3 py-1.5 bg-cyan-950/50 border border-cyan-500/30 rounded-lg backdrop-blur-sm">
+          <FileText className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="text-xs font-mono text-cyan-100 max-w-[200px] truncate">{attachedFilename}</span>
+          <button onClick={onRemoveAttachment} className="ml-1 text-gray-400 hover:text-red-400">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+      
       {/* Glow Effect */}
       <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur-md"></div>
       
       <div className="relative flex items-end gap-3 p-2 bg-gray-950/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
-        <button className="p-3 text-gray-500 hover:text-cyan-400 transition-colors flex-shrink-0">
-          <Paperclip className="w-5 h-5" />
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          onChange={handleFileChange}
+          accept=".pdf,.txt"
+        />
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading || !!attachedFilename}
+          className="p-3 text-gray-500 hover:text-cyan-400 transition-colors flex-shrink-0 disabled:opacity-50"
+        >
+          {isUploading ? (
+            <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Paperclip className="w-5 h-5" />
+          )}
         </button>
         
         <textarea

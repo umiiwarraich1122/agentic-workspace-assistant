@@ -102,6 +102,10 @@ export function CommandCenter() {
   const [activeThreadId, setActiveThreadId] = useState<string>('');
   const [isSyncing, setIsSyncing] = useState(false);
   
+  const [attachedDocumentId, setAttachedDocumentId] = useState<string | null>(null);
+  const [attachedFilename, setAttachedFilename] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -198,6 +202,21 @@ export function CommandCenter() {
     scrollToBottom();
   }, [messages, aiState]);
 
+  const handleFileUpload = async (file: File) => {
+    if (!user) return;
+    setIsUploading(true);
+    try {
+      const data = await chatService.uploadFile(user.userId, file);
+      setAttachedDocumentId(data.document_id);
+      setAttachedFilename(data.filename);
+    } catch (e) {
+      console.error("File upload failed", e);
+      alert("Failed to upload file");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSend = async (overrideText?: string) => {
     const textToSend = overrideText || input;
     if (!textToSend.trim() || !user) return;
@@ -217,7 +236,12 @@ export function CommandCenter() {
     OfficeTaskEngine.dispatchTask(userMsg.content);
 
     try {
-      const response = await chatService.sendMessage(user.userId, activeThreadId, userMsg.content);
+      const currentDocId = attachedDocumentId || undefined;
+      // Clear attachment after sending
+      setAttachedDocumentId(null);
+      setAttachedFilename(null);
+      
+      const response = await chatService.sendMessage(user.userId, activeThreadId, userMsg.content, currentDocId);
 
       setAiState('speaking');
 
@@ -518,6 +542,13 @@ export function CommandCenter() {
             onChange={setInput}
             onSend={() => handleSend()}
             isLoading={aiState === 'thinking'}
+            onFileUpload={handleFileUpload}
+            attachedFilename={attachedFilename}
+            onRemoveAttachment={() => {
+              setAttachedDocumentId(null);
+              setAttachedFilename(null);
+            }}
+            isUploading={isUploading}
           />
         </div>
       </div>
