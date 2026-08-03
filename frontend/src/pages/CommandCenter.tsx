@@ -384,9 +384,12 @@ export function CommandCenter() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col relative h-full overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-0">
+          <AICore state={aiState} />
+        </div>
 
         {/* 🏢 AI Office Scene – replaces static spinner */}
-        <div className="flex-shrink-0 border-b border-cyan-900/30 bg-gray-950/60 backdrop-blur-xl">
+        <div className="flex-shrink-0 border-b border-cyan-900/30 bg-gray-950/60 backdrop-blur-xl relative z-10">
           <AIOfficeScene isThinking={aiState === 'thinking'} />
         </div>
 
@@ -446,6 +449,29 @@ export function CommandCenter() {
                 );
               })}
             </AnimatePresence>
+          )}
+
+          {aiState === 'thinking' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start w-full relative z-10"
+            >
+              <div className="rounded-2xl px-6 py-4 bg-purple-900/30 border border-purple-500/40 backdrop-blur-2xl shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+                <div className="flex items-center gap-4">
+                  <div className="relative w-6 h-6">
+                    <div className="absolute inset-0 border-2 border-purple-500/30 rounded-full" />
+                    <div className="absolute inset-0 border-2 border-purple-400 rounded-full border-t-transparent animate-spin" />
+                  </div>
+                  <div className="font-mono text-sm text-purple-300 tracking-widest uppercase flex">
+                    Analyzing Directive
+                    <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>.</motion.span>
+                    <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}>.</motion.span>
+                    <motion.span animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.4 }}>.</motion.span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           )}
 
           {/* Old spinner removed – AI Office Scene handles visual feedback */}
