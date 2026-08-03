@@ -1,6 +1,6 @@
 from langchain_core.tools import tool
 from typing import List
-from app.google_api.mail import draft_email
+from app.google_api.mail import draft_email, send_draft
 from app.google_api.client import GoogleClient
 from app.database.supabase import get_supabase
 import json
@@ -47,4 +47,13 @@ def get_mail_tools(access_token: str, user_id: str):
         except Exception as e:
             return f"Error drafting email: {str(e)}"
 
-    return [get_recent_emails, create_email_draft]
+    @tool
+    async def send_email_draft(draft_id: str) -> str:
+        """Send an existing email draft in Gmail. Requires the draft ID. IMPORTANT: You must ONLY call this if the user explicitly says 'send it' or 'yes' after you drafted an email."""
+        try:
+            result = await send_draft(client, draft_id)
+            return f"Draft sent successfully! Message is now sent."
+        except Exception as e:
+            return f"Error sending draft: {str(e)}"
+
+    return [get_recent_emails, create_email_draft, send_email_draft]

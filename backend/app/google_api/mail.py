@@ -134,3 +134,9 @@ async def delete_email(client: GoogleClient, message_id: str):
     """Trash an email."""
     url = f"{GMAIL_BASE}/messages/{message_id}/trash"
     return await client.post(url, json={})
+
+async def send_draft(client: GoogleClient, draft_id: str):
+    """Send an existing draft in Gmail."""
+    url = f"{GMAIL_BASE}/drafts/send"
+    payload = {"id": draft_id}
+    return await client.post(url, json=payload)
