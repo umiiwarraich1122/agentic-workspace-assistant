@@ -229,11 +229,7 @@ export function DepartmentRooms({ activeAgents }: DeptProps) {
     {
       id: 'files', label: 'Files', icon: '🗂️', accentColor: '#f59e0b', glowColor: 'rgba(245,158,11,0.5)',
       decorations: <FilesDecorations active={false} />,
-    },
-    {
-      id: 'neural', label: 'Neural Core', icon: '🧠', accentColor: '#8b5cf6', glowColor: 'rgba(139,92,246,0.5)',
-      decorations: <NeuralDecorations active={false} />,
-    },
+    }
   ];
 
   return (

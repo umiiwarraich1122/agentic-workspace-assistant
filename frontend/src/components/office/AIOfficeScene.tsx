@@ -25,7 +25,7 @@ export function AIOfficeScene({ isThinking }: { isThinking: boolean }) {
   });
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [activeDept, setActiveDept] = useState<Record<Department, { agentId: AgentId; step: string } | null>>({
-    gmail: null, calendar: null, tasks: null, browser: null, files: null, neural: null,
+    gmail: null, calendar: null, tasks: null, browser: null, files: null,
   });
   const [logLines, setLogLines] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
@@ -89,12 +89,11 @@ export function AIOfficeScene({ isThinking }: { isThinking: boolean }) {
   useEffect(() => { logRef.current?.scrollTo(0, logRef.current.scrollHeight); }, [logLines]);
 
   const DEPT_META: Record<Department, { label: string; icon: string; color: string; glow: string; pos: { top: string; left: string; w: string } }> = {
-    gmail:    { label: 'Gmail',    icon: '📧', color: '#ea4335', glow: 'rgba(234,67,53,0.5)',   pos: { top: '8%',  left: '2%',  w: '13%' } },
-    calendar: { label: 'Calendar', icon: '📅', color: '#a855f7', glow: 'rgba(168,85,247,0.5)', pos: { top: '8%',  left: '17%', w: '13%' } },
-    tasks:    { label: 'Tasks',    icon: '✅', color: '#10b981', glow: 'rgba(16,185,129,0.5)', pos: { top: '8%',  left: '32%', w: '13%' } },
-    browser:  { label: 'Browser',  icon: '🌐', color: '#06b6d4', glow: 'rgba(6,182,212,0.5)',  pos: { top: '8%',  left: '47%', w: '13%' } },
-    files:    { label: 'Files',    icon: '🗂️', color: '#f59e0b', glow: 'rgba(245,158,11,0.5)', pos: { top: '8%',  left: '62%', w: '13%' } },
-    neural:   { label: 'Neural Core', icon: '🧠', color: '#8b5cf6', glow: 'rgba(139,92,246,0.5)', pos: { top: '8%', left: '77%', w: '20%' } },
+    gmail:    { label: 'Gmail',    icon: '📧', color: '#ea4335', glow: 'rgba(234,67,53,0.5)',   pos: { top: '8%',  left: '2%',  w: '17%' } },
+    calendar: { label: 'Calendar', icon: '📅', color: '#a855f7', glow: 'rgba(168,85,247,0.5)', pos: { top: '8%',  left: '21.5%', w: '17%' } },
+    tasks:    { label: 'Tasks',    icon: '✅', color: '#10b981', glow: 'rgba(16,185,129,0.5)', pos: { top: '8%',  left: '41.5%', w: '17%' } },
+    browser:  { label: 'Browser',  icon: '🌐', color: '#06b6d4', glow: 'rgba(6,182,212,0.5)',  pos: { top: '8%',  left: '61.5%', w: '17%' } },
+    files:    { label: 'Files',    icon: '🗂️', color: '#f59e0b', glow: 'rgba(245,158,11,0.5)', pos: { top: '8%',  left: '81%', w: '17%' } },
   };
 
   return (
@@ -181,7 +180,6 @@ export function AIOfficeScene({ isThinking }: { isThinking: boolean }) {
                 {dept === 'tasks' && '📋'}
                 {dept === 'browser' && '🌐'}
                 {dept === 'files' && '📁'}
-                {dept === 'neural' && <motion.span animate={{rotate:360}} transition={{repeat:Infinity,duration:4,ease:'linear'}}>🧠</motion.span>}
               </div>
 
               {/* Progress label */}

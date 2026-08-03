@@ -1,6 +1,6 @@
 // OfficeTaskEngine.ts  — fast, event-driven, cancellable
 
-export type Department = 'gmail' | 'calendar' | 'tasks' | 'browser' | 'files' | 'neural';
+export type Department = 'gmail' | 'calendar' | 'tasks' | 'browser' | 'files';
 export type AgentState = 'idle' | 'standing' | 'walking_to_dept' | 'working' | 'celebrating' | 'walking_back' | 'sitting';
 export type AgentId = 'cipher' | 'nexus' | 'echo';
 
@@ -17,7 +17,7 @@ export interface Agent {
 export interface OfficeTask {
   id: string;
   prompt: string;
-  department: Department;
+  department: Department | null;
   agentId: AgentId | null;
   status: 'queued' | 'in_progress' | 'done';
   progressSteps: string[];
@@ -29,7 +29,7 @@ export type OfficeEvent =
   | { type: 'AGENT_ASSIGNED'; taskId: string; agentId: AgentId }
   | { type: 'AGENT_STANDING'; agentId: AgentId }
   | { type: 'AGENT_WALKING'; agentId: AgentId; destination: Department }
-  | { type: 'AGENT_WORKING'; agentId: AgentId; dept: Department }
+  | { type: 'AGENT_WORKING'; agentId: AgentId; dept: Department | null }
   | { type: 'PROGRESS_STEP'; agentId: AgentId; step: string }
   | { type: 'AGENT_CELEBRATING'; agentId: AgentId }
   | { type: 'AGENT_RETURNING'; agentId: AgentId }
@@ -44,7 +44,6 @@ const DEPT_KEYWORDS: Record<Department, string[]> = {
   tasks:    ['task', 'todo', 'directive', 'checklist', 'reminder', 'finalize', 'roadmap', 'create task', 'add task'],
   browser:  ['search', 'research', 'find', 'lookup', 'browse', 'web', 'internet', 'livekit', 'news', 'headlines', 'bbc', 'prices', 'weather', 'current events', 'real-time', 'latest'],
   files:    ['file', 'document', 'upload', 'storage', 'folder', 'download', 'save', 'pdf', 'image', 'local content'],
-  neural:   ['ai', 'model', 'neural', 'train', 'analyze', 'process', 'summarize', 'generate'],
 };
 
 const DEPT_PROGRESS: Record<Department, string[]> = {
@@ -53,12 +52,11 @@ const DEPT_PROGRESS: Record<Department, string[]> = {
   tasks:    ['Opening Tasks...', 'Parsing directive...', 'Creating entries...', 'Updating board...', 'Saving...'],
   browser:  ['Opening Browser...', 'Searching web...', 'Scanning pages...', 'Extracting data...', 'Compiling...'],
   files:    ['Opening Files...', 'Scanning dirs...', 'Indexing...', 'Processing...', 'Organizing...'],
-  neural:   ['Activating Core...', 'Loading model...', 'Processing...', 'Generating...', 'Finalizing...'],
 };
 
-export function classifyDepartment(prompt: string): Department {
+export function classifyDepartment(prompt: string): Department | null {
   const lower = prompt.toLowerCase();
-  let bestDept: Department = 'neural';
+  let bestDept: Department | null = null;
   let bestScore = 0;
   for (const [dept, keywords] of Object.entries(DEPT_KEYWORDS) as [Department, string[]][]) {
     const score = keywords.filter(kw => lower.includes(kw)).length;
@@ -136,20 +134,23 @@ class OfficeTaskEngineClass {
     await delay(250);
     if (this.cancelTokens.get(agentId)) return;
 
-    // ── Walk to guessed department
-    this.agents[agentId].state = 'walking_to_dept';
-    this.agents[agentId].currentDept = task.department;
-    this.emit({ type: 'AGENT_WALKING', agentId, destination: task.department });
-    await delay(900);
-    if (this.cancelTokens.get(agentId)) return;
+    if (task.department) {
+      // ── Walk to guessed department
+      this.agents[agentId].state = 'walking_to_dept';
+      this.agents[agentId].currentDept = task.department;
+      this.emit({ type: 'AGENT_WALKING', agentId, destination: task.department });
+      await delay(900);
+      if (this.cancelTokens.get(agentId)) return;
+    }
 
     // ── Working + cycling progress steps
     this.agents[agentId].state = 'working';
     this.emit({ type: 'AGENT_WORKING', agentId, dept: task.department });
 
     let stepIdx = 0;
+    const progressSteps = task.department ? DEPT_PROGRESS[task.department] : DEFAULT_DESK_PROGRESS;
     while (!this.cancelTokens.get(agentId) && this.agents[agentId].state === 'working') {
-      const step = task.progressSteps[stepIdx % task.progressSteps.length];
+      const step = progressSteps[stepIdx % progressSteps.length];
       this.emit({ type: 'PROGRESS_STEP', agentId, step });
       await delay(380);
       stepIdx++;
@@ -169,7 +170,7 @@ class OfficeTaskEngineClass {
     
     if (!targetAgent) return;
 
-    const targetDept = TOOL_TO_DEPT[toolName] || 'neural';
+    const targetDept = TOOL_TO_DEPT[toolName] || null;
     const agent = this.agents[targetAgent];
     
     // If they are already going to or at the correct department, do nothing
@@ -180,17 +181,28 @@ class OfficeTaskEngineClass {
     await delay(50); // let loop exit
     this.cancelTokens.set(targetAgent, false); // re-enable for new loop
 
-    this.agents[targetAgent].state = 'walking_to_dept';
-    this.agents[targetAgent].currentDept = targetDept;
-    this.emit({ type: 'AGENT_WALKING', agentId: targetAgent, destination: targetDept });
-    await delay(900);
-    if (this.cancelTokens.get(targetAgent)) return;
+    if (targetDept) {
+      this.agents[targetAgent].state = 'walking_to_dept';
+      this.agents[targetAgent].currentDept = targetDept;
+      this.emit({ type: 'AGENT_WALKING', agentId: targetAgent, destination: targetDept });
+      await delay(900);
+      if (this.cancelTokens.get(targetAgent)) return;
+    } else {
+      // If we are redirecting TO desk, they should walk back first if they were somewhere
+      if (agent.currentDept !== null) {
+        this.agents[targetAgent].state = 'walking_back';
+        this.emit({ type: 'AGENT_RETURNING', agentId: targetAgent });
+        await delay(900);
+        if (this.cancelTokens.get(targetAgent)) return;
+      }
+      this.agents[targetAgent].currentDept = null;
+    }
 
     this.agents[targetAgent].state = 'working';
     this.emit({ type: 'AGENT_WORKING', agentId: targetAgent, dept: targetDept });
 
     let stepIdx = 0;
-    const progressSteps = DEPT_PROGRESS[targetDept];
+    const progressSteps = targetDept ? DEPT_PROGRESS[targetDept] : DEFAULT_DESK_PROGRESS;
     while (!this.cancelTokens.get(targetAgent) && this.agents[targetAgent].state === 'working') {
       const step = progressSteps[stepIdx % progressSteps.length];
       this.emit({ type: 'PROGRESS_STEP', agentId: targetAgent, step });
