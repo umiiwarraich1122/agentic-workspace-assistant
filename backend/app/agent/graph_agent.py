@@ -28,21 +28,37 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     is_production = os.getenv("VERCEL") or os.getenv("ENVIRONMENT") == "production"
     openai_key = os.getenv("OPENAI_API_KEY") or settings.OPENAI_API_KEY
     cerebras_key = os.getenv("CEREBRAS_API_KEY") or settings.CEREBRAS_API_KEY
+    openrouter_key = os.getenv("OPENROUTER_API_KEY") or settings.OPENROUTER_API_KEY
 
     model = None
 
-    if is_production and openai_key:
-        try:
-            logger.info("Running on Vercel/Production: Using OpenAI gpt-4o-mini")
-            model = ChatOpenAI(
-                model="gpt-4o-mini",
-                temperature=0,
-                api_key=openai_key,
-                timeout=30.0,
-                max_retries=2
-            )
-        except Exception as e:
-            logger.error(f"Failed to initialize OpenAI model on Vercel: {e}")
+    if is_production:
+        if openai_key:
+            try:
+                logger.info("Running on Vercel/Production: Using OpenAI gpt-4o-mini")
+                model = ChatOpenAI(
+                    model="gpt-4o-mini",
+                    temperature=0,
+                    api_key=openai_key,
+                    timeout=30.0,
+                    max_retries=2
+                )
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI model on Vercel: {e}")
+        elif openrouter_key:
+            try:
+                logger.info("Running on Vercel/Production: Using OpenRouter")
+                model = ChatOpenAI(
+                    model="meta-llama/llama-3.1-8b-instruct:free",
+                    temperature=0,
+                    api_key=openrouter_key,
+                    base_url="https://openrouter.ai/api/v1",
+                    timeout=30.0,
+                    max_retries=2,
+                    default_headers={"HTTP-Referer": "http://localhost:5173", "X-Title": "Personal Assistant"}
+                )
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenRouter model on Vercel: {e}")
 
     if not model:
         # Try local Ollama (llama3.2:latest) for local laptop execution
@@ -68,6 +84,15 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
                 temperature=0,
                 api_key=openai_key,
                 timeout=30.0
+            )
+        elif openrouter_key:
+            model = ChatOpenAI(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                temperature=0,
+                api_key=openrouter_key,
+                base_url="https://openrouter.ai/api/v1",
+                timeout=30.0,
+                default_headers={"HTTP-Referer": "http://localhost:5173", "X-Title": "Personal Assistant"}
             )
         elif cerebras_key:
             model = ChatOpenAI(
