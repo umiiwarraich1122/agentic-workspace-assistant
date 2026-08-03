@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfficeTaskEngine, type AgentId, type Department, type OfficeEvent } from './OfficeTaskEngine';
-import { AgentCharacter } from './AgentCharacter';
+import { AgentCharacter, DEPT_POSITIONS, DESK_POSITIONS } from './AgentCharacter';
 
 interface AgentDisplayState {
   id: AgentId;
@@ -228,6 +228,34 @@ export function AIOfficeScene({ isThinking }: { isThinking: boolean }) {
             </div>
           );
         })}
+
+        {/* ─── SVG Footprint Trails ─── */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.2))' }}>
+          {(Object.values(agents) as AgentDisplayState[]).map(agent => {
+            if ((agent.state === 'walking_to_dept' || agent.state === 'working' || agent.state === 'celebrating' || agent.state === 'walking_back') && agent.currentDept) {
+              const start = DESK_POSITIONS[agent.id];
+              const end = DEPT_POSITIONS[agent.currentDept];
+              // For walking back, swap start/end visually or just keep the line
+              // Actually, a dashed line with a stroke dash array animation looks like ants/footsteps.
+              return (
+                <motion.line
+                  key={agent.id + agent.currentDept}
+                  x1={`${start.x}%`} y1={`${start.y}%`}
+                  x2={`${end.x}%`} y2={`${end.y + 8}%`} // +8 to attach to bottom of dept box
+                  stroke={agent.color}
+                  strokeWidth="2"
+                  strokeDasharray="4 6"
+                  strokeLinecap="round"
+                  initial={{ opacity: 0, pathLength: 0 }}
+                  animate={{ opacity: 0.4, pathLength: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                />
+              );
+            }
+            return null;
+          })}
+        </svg>
 
         {/* ─── Agent Characters ─── */}
         {(Object.values(agents) as AgentDisplayState[]).map(agent => (

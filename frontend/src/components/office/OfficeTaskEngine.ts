@@ -67,6 +67,17 @@ export function classifyDepartment(prompt: string): Department {
   return bestDept;
 }
 
+const TOOL_TO_DEPT: Record<string, Department> = {
+  'get_latest_news': 'browser',
+  'create_email_draft': 'gmail',
+  'send_email_draft': 'gmail',
+  'read_recent_emails': 'gmail',
+  'get_calendar_events': 'calendar',
+  'create_calendar_event': 'calendar',
+  'list_tasks': 'tasks',
+  'create_task': 'tasks'
+};
+
 class OfficeTaskEngineClass {
   private listeners: Listener[] = [];
   private agents: Record<AgentId, Agent> = {
@@ -97,10 +108,9 @@ class OfficeTaskEngineClass {
   }
 
   async dispatchTask(prompt: string): Promise<void> {
-    const dept = classifyDepartment(prompt);
     const task: OfficeTask = {
-      id: crypto.randomUUID(), prompt, department: dept, agentId: null,
-      status: 'queued', progressSteps: DEPT_PROGRESS[dept], currentStep: 0,
+      id: crypto.randomUUID(), prompt, department: 'neural', agentId: null, // default to neural until tool known
+      status: 'queued', progressSteps: DEPT_PROGRESS['neural'], currentStep: 0,
     };
     const agentId = this.getAvailableAgent();
     if (!agentId) {
@@ -109,37 +119,61 @@ class OfficeTaskEngineClass {
       return;
     }
     this.emit({ type: 'TASK_QUEUED', task });
-    this.runAgentTask(agentId, task);
+    this.runAgentStandby(agentId, task);
   }
 
-  private async runAgentTask(agentId: AgentId, task: OfficeTask) {
+  private async runAgentStandby(agentId: AgentId, task: OfficeTask) {
     task.agentId = agentId;
     task.status = 'in_progress';
     this.activeTasks.set(agentId, task.id);
     this.cancelTokens.set(agentId, false);
 
-    // ── Stand up (fast)
+    // ── Stand up and wait for tool
     this.agents[agentId].state = 'standing';
     this.emit({ type: 'AGENT_ASSIGNED', taskId: task.id, agentId });
-    await delay(250);
-    if (this.cancelTokens.get(agentId)) return;
-
-    // ── Walk to department (fast)
-    this.agents[agentId].state = 'walking_to_dept';
-    this.agents[agentId].currentDept = task.department;
-    this.emit({ type: 'AGENT_WALKING', agentId, destination: task.department });
-    await delay(900);
-    if (this.cancelTokens.get(agentId)) return;
-
-    // ── Working + cycling progress steps until cancelled
-    this.agents[agentId].state = 'working';
-    this.emit({ type: 'AGENT_WORKING', agentId, dept: task.department });
-
-    // Cycle steps quickly, and keep looping until onTaskComplete() is called
+    
+    // Cycle general neural thinking until cancelled or redirected
     let stepIdx = 0;
-    while (!this.cancelTokens.get(agentId)) {
-      const step = task.progressSteps[stepIdx % task.progressSteps.length];
+    while (!this.cancelTokens.get(agentId) && this.agents[agentId].state === 'standing') {
+      const step = DEPT_PROGRESS['neural'][stepIdx % DEPT_PROGRESS['neural'].length];
       this.emit({ type: 'PROGRESS_STEP', agentId, step });
+      await delay(380);
+      stepIdx++;
+    }
+  }
+
+  async dispatchToolTask(toolName: string) {
+    // Find the first agent standing (waiting for a tool)
+    let targetAgent: AgentId | null = null;
+    let activeTask: string | null = null;
+    for (const [id, agent] of Object.entries(this.agents)) {
+      if (agent.state === 'standing') {
+        targetAgent = id as AgentId;
+        activeTask = this.activeTasks.get(targetAgent) || null;
+        break;
+      }
+    }
+    
+    if (!targetAgent) return; // Agent might already be walking/working from a previous tool in this stream
+
+    const dept = TOOL_TO_DEPT[toolName] || 'neural';
+    
+    // ── Walk to department
+    this.agents[targetAgent].state = 'walking_to_dept';
+    this.agents[targetAgent].currentDept = dept;
+    this.emit({ type: 'AGENT_WALKING', agentId: targetAgent, destination: dept });
+    await delay(900);
+    if (this.cancelTokens.get(targetAgent)) return;
+
+    // ── Working + cycling progress steps
+    this.agents[targetAgent].state = 'working';
+    this.emit({ type: 'AGENT_WORKING', agentId: targetAgent, dept });
+
+    let stepIdx = 0;
+    const progressSteps = DEPT_PROGRESS[dept];
+    while (!this.cancelTokens.get(targetAgent) && this.agents[targetAgent].state === 'working') {
+      const step = progressSteps[stepIdx % progressSteps.length];
+      this.emit({ type: 'PROGRESS_STEP', agentId: targetAgent, step });
       await delay(380);
       stepIdx++;
     }

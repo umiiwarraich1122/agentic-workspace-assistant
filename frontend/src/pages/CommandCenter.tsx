@@ -241,7 +241,20 @@ export function CommandCenter() {
       setAttachedDocumentId(null);
       setAttachedFilename(null);
       
-      const response = await chatService.sendMessage(user.userId, activeThreadId, userMsg.content, currentDocId);
+      const response = await chatService.sendMessageStream(
+        user.userId, 
+        activeThreadId, 
+        userMsg.content, 
+        currentDocId,
+        (toolName) => {
+          // Received tool execution from backend stream
+          OfficeTaskEngine.dispatchToolTask(toolName);
+        },
+        (msg) => {
+          // This receives intermediate or final messages if needed
+          // But final response is also returned from sendMessageStream
+        }
+      );
 
       setAiState('speaking');
 

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from app.schemas.core import ChatRequest, ChatResponse
 from app.agent.graph_agent import build_graph
 from app.auth.token_manager import TokenManager
@@ -7,6 +8,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 import logging
 import uuid
 import datetime
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -113,9 +115,9 @@ async def upload_document(file: UploadFile = File(...), user_id: str = Form(...)
         logger.error(f"Error uploading document: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse document")
 
-@router.post("", response_model=ChatResponse)
+@router.post("")
 async def chat(request: ChatRequest):
-    """Send a message to the Jarvis AI Assistant."""
+    """Send a message to the Jarvis AI Assistant (Streaming SSE)."""
     logger.info(f"Incoming Request - User: {request.user_id}, Thread: {request.thread_id}")
     try:
         access_token = await TokenManager.get_access_token(request.user_id)
@@ -123,20 +125,16 @@ async def chat(request: ChatRequest):
         logger.error(f"Error fetching token: {str(e)}", exc_info=True)
         raise HTTPException(status_code=401, detail=f"Auth error: {str(e)}")
 
-    # Generate a thread ID if one wasn't provided or is invalid
     thread_id = request.thread_id
     if not thread_id or thread_id == 'undefined':
         thread_id = str(uuid.uuid4())
 
-    # Save user message to Supabase
     save_message_to_db(thread_id, request.user_id, "user", request.message)
 
-    # Retrieve conversational state from Supabase
     thread_state = get_thread_state(thread_id)
     thread_state["user_id"] = request.user_id
     thread_state["access_token"] = access_token
 
-    # Handle document context injection (RAG)
     if request.attached_document_id:
         from app.services.memory_store import store
         doc = store.get_document(request.attached_document_id)
@@ -145,20 +143,35 @@ async def chat(request: ChatRequest):
             injected_content = f"[Attached Document: {doc['filename']}]\n\n{doc['content']}\n\nUser Message:\n{original_content}"
             thread_state["messages"][-1].content = injected_content
 
-    try:
-        agent = build_graph(access_token, request.user_id, request.local_time, request.timezone)
-        result = await agent.ainvoke(thread_state)
-        
-        final_message = result["messages"][-1].content
-        # Save AI response to Supabase
-        save_message_to_db(thread_id, request.user_id, "assistant", final_message)
-        
-        return ChatResponse(response=final_message)
-        
-    except Exception as e:
-        import traceback
-        error_msg = f"LangGraph Crash: {str(e)}\n{traceback.format_exc()}"
-        logger.error(error_msg)
-        with open("crash_log.txt", "w") as f:
-            f.write(error_msg)
-        raise HTTPException(status_code=500, detail=str(e))
+    async def event_generator():
+        try:
+            agent = build_graph(access_token, request.user_id, request.local_time, request.timezone)
+            final_message = ""
+            
+            async for chunk in agent.astream(thread_state):
+                for node_name, node_state in chunk.items():
+                    messages = node_state.get("messages", [])
+                    if not messages:
+                        continue
+                    
+                    last_msg = messages[-1]
+                    
+                    if node_name == "agent":
+                        if hasattr(last_msg, "tool_calls") and last_msg.tool_calls:
+                            for tc in last_msg.tool_calls:
+                                payload = json.dumps({"type": "tool_start", "tool": tc.get("name", "")})
+                                yield f"data: {payload}\n\n"
+                        elif hasattr(last_msg, "content") and last_msg.content:
+                            final_message = last_msg.content
+                            
+            if final_message:
+                save_message_to_db(thread_id, request.user_id, "assistant", final_message)
+                payload = json.dumps({"type": "final", "content": final_message})
+                yield f"data: {payload}\n\n"
+                
+        except Exception as e:
+            import traceback
+            logger.error(f"LangGraph Crash: {str(e)}\n{traceback.format_exc()}")
+            yield f"data: {json.dumps({'type': 'error', 'content': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

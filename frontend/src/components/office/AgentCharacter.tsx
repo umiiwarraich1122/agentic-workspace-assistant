@@ -13,7 +13,7 @@ interface AgentProps {
 }
 
 // Department positions (% of container width/height)
-const DEPT_POSITIONS: Record<Department, { x: number; y: number }> = {
+export const DEPT_POSITIONS: Record<Department, { x: number; y: number }> = {
   gmail:    { x: 8,  y: 28 },
   calendar: { x: 30, y: 28 },
   tasks:    { x: 55, y: 28 },
@@ -22,7 +22,7 @@ const DEPT_POSITIONS: Record<Department, { x: number; y: number }> = {
   neural:   { x: 42, y: 10 },
 };
 
-const DESK_POSITIONS: Record<AgentId, { x: number; y: number }> = {
+export const DESK_POSITIONS: Record<AgentId, { x: number; y: number }> = {
   cipher: { x: 14, y: 68 },
   nexus:  { x: 48, y: 68 },
   echo:   { x: 82, y: 68 },

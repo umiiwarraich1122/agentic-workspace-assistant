@@ -8,19 +8,54 @@ export const api = axios.create({
 });
 
 export const chatService = {
-  sendMessage: async (userId: string, threadId: string, message: string, attachedDocumentId?: string) => {
+  sendMessageStream: async (userId: string, threadId: string, message: string, attachedDocumentId: string | undefined, onToolStart: (toolName: string) => void, onMessage: (msg: string) => void) => {
     const local_time = new Date().toLocaleString();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     
-    const response = await api.post('/chat', {
-      user_id: userId,
-      thread_id: threadId,
-      message,
-      local_time,
-      timezone,
-      attached_document_id: attachedDocumentId
+    const response = await fetch(`${api.defaults.baseURL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId,
+        thread_id: threadId,
+        message,
+        local_time,
+        timezone,
+        attached_document_id: attachedDocumentId
+      })
     });
-    return response.data;
+
+    if (!response.body) throw new Error("No response body");
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let finalMessage = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.replace('data: ', ''));
+            if (data.type === 'tool_start') {
+              onToolStart(data.tool);
+            } else if (data.type === 'final') {
+              finalMessage = data.content;
+              onMessage(data.content);
+            } else if (data.type === 'error') {
+              console.error("Stream error:", data.content);
+              onMessage("Error: " + data.content);
+            }
+          } catch (e) {
+            // parsing error on partial chunk is possible, but usually chunks are full JSON lines
+          }
+        }
+      }
+    }
+    return finalMessage;
   },
   uploadFile: async (userId: string, file: File) => {
     const formData = new FormData();
