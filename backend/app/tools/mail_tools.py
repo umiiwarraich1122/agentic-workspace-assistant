@@ -36,7 +36,13 @@ def get_mail_tools(access_token: str, user_id: str):
     async def create_email_draft(subject: str, body: str, to_recipients: List[str]) -> str:
         """Draft a new email in Gmail. IMPORTANT: This saves as a draft in Gmail."""
         try:
-            result = await draft_email(client, subject, body, to_recipients, sender_email=user_id)
+            from app.services.memory_store import store
+            tokens = store.get_tokens(user_id)
+            actual_email = None
+            if tokens and "user_profile" in tokens:
+                actual_email = tokens["user_profile"].get("email")
+
+            result = await draft_email(client, subject, body, to_recipients, sender_email=actual_email)
             return f"Gmail draft created successfully. Draft ID: {result.get('id')}"
         except Exception as e:
             return f"Error drafting email: {str(e)}"
