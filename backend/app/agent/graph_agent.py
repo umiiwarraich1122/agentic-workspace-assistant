@@ -21,87 +21,44 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     ]
     
     # Model selection logic:
-    # 1. On Vercel / Production: Uses OpenAI API (gpt-4o-mini) to guarantee zero rate limits for evaluators
-    # 2. On Local Laptop: Uses local Ollama llama3.2:latest (http://localhost:11434/v1) for zero token usage
-    # 3. Fallback: Uses OpenAI or Cerebras if local Ollama is offline
-
-    is_production = os.getenv("VERCEL") or os.getenv("ENVIRONMENT") == "production"
+    # 1. OpenRouter (primary preference requested by user)
+    # 2. OpenAI
+    # 3. Cerebras
     openai_key = os.getenv("OPENAI_API_KEY") or settings.OPENAI_API_KEY
     cerebras_key = os.getenv("CEREBRAS_API_KEY") or settings.CEREBRAS_API_KEY
     openrouter_key = os.getenv("OPENROUTER_API_KEY") or settings.OPENROUTER_API_KEY
 
     model = None
 
-    if is_production:
-        if openai_key:
-            try:
-                logger.info("Running on Vercel/Production: Using OpenAI gpt-4o-mini")
-                model = ChatOpenAI(
-                    model="gpt-4o-mini",
-                    temperature=0,
-                    api_key=openai_key,
-                    timeout=30.0,
-                    max_retries=2
-                )
-            except Exception as e:
-                logger.error(f"Failed to initialize OpenAI model on Vercel: {e}")
-        elif openrouter_key:
-            try:
-                logger.info("Running on Vercel/Production: Using OpenRouter")
-                model = ChatOpenAI(
-                    model="openrouter/free",
-                    temperature=0,
-                    api_key=openrouter_key,
-                    base_url="https://openrouter.ai/api/v1",
-                    timeout=30.0,
-                    max_retries=2,
-                    default_headers={"HTTP-Referer": "http://localhost:5173", "X-Title": "Personal Assistant"}
-                )
-            except Exception as e:
-                logger.error(f"Failed to initialize OpenRouter model on Vercel: {e}")
-
-    if not model:
-        # Try local Ollama (llama3.2:latest) for local laptop execution
-        try:
-            logger.info("Attempting Local Ollama model: llama3.2:latest")
-            model = ChatOpenAI(
-                model=settings.OLLAMA_MODEL,
-                temperature=0,
-                base_url=settings.OLLAMA_BASE_URL,
-                api_key="ollama",
-                timeout=90.0,
-                max_retries=2
-            )
-        except Exception as e:
-            logger.warning(f"Local Ollama unavailable, switching to cloud model: {e}")
-            model = None
-
-    if not model:
-        # Cloud fallback options
-        if openai_key:
-            model = ChatOpenAI(
-                model="gpt-4o-mini",
-                temperature=0,
-                api_key=openai_key,
-                timeout=30.0
-            )
-        elif openrouter_key:
-            model = ChatOpenAI(
-                model="openrouter/free",
-                temperature=0,
-                api_key=openrouter_key,
-                base_url="https://openrouter.ai/api/v1",
-                timeout=30.0,
-                default_headers={"HTTP-Referer": "http://localhost:5173", "X-Title": "Personal Assistant"}
-            )
-        elif cerebras_key:
-            model = ChatOpenAI(
-                model="gpt-oss-120b",
-                temperature=0,
-                api_key=cerebras_key,
-                base_url="https://api.cerebras.ai/v1",
-                timeout=30.0
-            )
+    if openrouter_key:
+        logger.info("Using OpenRouter")
+        model = ChatOpenAI(
+            model="openrouter/free",
+            temperature=0,
+            api_key=openrouter_key,
+            base_url="https://openrouter.ai/api/v1",
+            timeout=30.0,
+            max_retries=2,
+            default_headers={"HTTP-Referer": "http://localhost:5173", "X-Title": "Personal Assistant"}
+        )
+    elif openai_key:
+        logger.info("Using OpenAI gpt-4o-mini")
+        model = ChatOpenAI(
+            model="gpt-4o-mini",
+            temperature=0,
+            api_key=openai_key,
+            timeout=30.0,
+            max_retries=2
+        )
+    elif cerebras_key:
+        logger.info("Using Cerebras")
+        model = ChatOpenAI(
+            model="gpt-oss-120b",
+            temperature=0,
+            api_key=cerebras_key,
+            base_url="https://api.cerebras.ai/v1",
+            timeout=30.0
+        )
 
     if model:
         model = model.bind_tools(tools)
