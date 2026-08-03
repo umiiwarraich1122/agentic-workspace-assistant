@@ -9,6 +9,7 @@ import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
 import { Plus, MessageSquare, RefreshCw, Trash2, LogOut } from 'lucide-react';
 import { AIOfficeScene } from '../components/office/AIOfficeScene';
+import { VoiceInterface } from '../components/voice/VoiceInterface';
 import { OfficeTaskEngine } from '../components/office/OfficeTaskEngine';
 
 const SUGGESTIONS = [
@@ -544,6 +545,9 @@ export function CommandCenter() {
         </div>
 
         <div className="px-6 sm:px-12 pb-8 pt-4 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent z-20">
+          <div className="flex justify-center mb-4">
+            <VoiceInterface userId={user?.userId || 'anonymous'} accessToken={user?.accessToken || ''} />
+          </div>
           <div className="flex overflow-x-auto gap-3 mb-4 pb-2 scrollbar-hide mask-fade-edges">
             {SUGGESTIONS.map((sug, i) => (
               <motion.button
