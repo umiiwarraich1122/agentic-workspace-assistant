@@ -49,7 +49,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
             try:
                 logger.info("Running on Vercel/Production: Using OpenRouter")
                 model = ChatOpenAI(
-                    model="meta-llama/llama-3.1-8b-instruct:free",
+                    model="openrouter/free",
                     temperature=0,
                     api_key=openrouter_key,
                     base_url="https://openrouter.ai/api/v1",
@@ -87,7 +87,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
             )
         elif openrouter_key:
             model = ChatOpenAI(
-                model="meta-llama/llama-3.1-8b-instruct:free",
+                model="openrouter/free",
                 temperature=0,
                 api_key=openrouter_key,
                 base_url="https://openrouter.ai/api/v1",
