@@ -12,9 +12,10 @@ interface CyberInputProps {
   attachedFilename?: string | null;
   onRemoveAttachment?: () => void;
   isUploading?: boolean;
+  rightAddon?: React.ReactNode;
 }
 
-export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, attachedFilename, onRemoveAttachment, isUploading }: CyberInputProps) {
+export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, attachedFilename, onRemoveAttachment, isUploading, rightAddon }: CyberInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -95,6 +96,7 @@ export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, a
               <Send className="w-5 h-5" />
             )}
           </motion.button>
+          {rightAddon}
         </div>
       </div>
     </div>

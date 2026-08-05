@@ -21,6 +21,7 @@ export interface ChatMessage {
   sender: 'user' | 'ai';
   content: string;
   timestamp: Date;
+  source?: 'voice' | 'text';
   /** Populated for AI messages that returned structured JSON (emails, summary, etc.) */
   structuredData?: StructuredAIResponse;
 }

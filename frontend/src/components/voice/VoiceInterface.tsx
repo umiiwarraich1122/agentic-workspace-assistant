@@ -1,96 +1,141 @@
-import React, { useState, useEffect } from 'react';
-import {
-  LiveKitRoom,
-  RoomAudioRenderer,
-  VoiceAssistantControlBar,
-  useVoiceAssistant,
-} from '@livekit/components-react';
-import '@livekit/components-styles';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 interface VoiceInterfaceProps {
   userId: string;
   accessToken: string;
+  onVoiceCommand: (message: string) => void | Promise<void>;
+  onVoiceTranscript: (transcript: string) => void;
 }
 
-export function VoiceInterface({ userId, accessToken }: VoiceInterfaceProps) {
-  const [token, setToken] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
+export function VoiceInterface({ userId, accessToken, onVoiceCommand, onVoiceTranscript }: VoiceInterfaceProps) {
+  const [recognizing, setRecognizing] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const livekitUrl = import.meta.env.VITE_LIVEKIT_URL || 'wss://your-livekit-url.livekit.cloud';
+  const recognitionRef = useRef<any | null>(null);
 
-  const connectToVoice = async () => {
-    setConnecting(true);
+  // Initialize synth for greeting
+  useEffect(() => {
+    // We don't speak on mount automatically, wait for user interaction
+  }, []);
+
+  const startRecognition = () => {
+    if (recognitionRef.current) return;
     setError(null);
-    try {
-      // Call the FastAPI endpoint we created
-      const response = await fetch('http://localhost:8000/api/livekit/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, access_token: accessToken }),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to get token: ${response.statusText}`);
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('SpeechRecognition API not supported in this browser.');
+      return;
+    }
+
+    const recog: any = new SpeechRecognition();
+    recog.lang = 'en-US';
+    recog.interimResults = true;
+    recog.maxAlternatives = 1;
+    recog.continuous = false; // single turn
+    recog.finalTranscript = '';
+
+    recog.onstart = () => {
+      setRecognizing(true);
+      recog.finalTranscript = '';
+      onVoiceTranscript('');
+    };
+
+    recog.onresult = (event: any) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const res = event.results[i];
+        if (res.isFinal) {
+          final += res[0].transcript;
+        } else {
+          interim += res[0].transcript;
+        }
       }
-      const data = await response.json();
-      setToken(data.token);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setConnecting(false);
+
+      if (final) {
+        recog.finalTranscript += final;
+      }
+
+      const transcript = (recog.finalTranscript + interim).trim();
+      setLiveTranscript(transcript);
+      onVoiceTranscript(transcript);
+    };
+
+    recog.onerror = (ev: any) => {
+      console.warn('[SpeechRecog] error', ev);
+      if (ev.error !== 'no-speech') {
+        setError('Speech recognition error: ' + ev.error);
+      }
+      setRecognizing(false);
+      recognitionRef.current = null;
+    };
+
+    recog.onend = async () => {
+      const finalText = recog.finalTranscript?.trim();
+      setRecognizing(false);
+      recognitionRef.current = null;
+      setLiveTranscript('');
+
+      if (!finalText) {
+        onVoiceTranscript('');
+        return;
+      }
+      try {
+        await onVoiceCommand(finalText);
+      } catch (sendError) {
+        console.error('[VoiceInterface] failed to send voice command', sendError);
+        setError('Failed to send voice command.');
+      }
+    };
+
+    recognitionRef.current = recog;
+    try {
+      recog.start();
+    } catch (e) {
+      console.warn('Could not start recognition', e);
     }
   };
 
-  const disconnect = () => {
-    setToken(null);
+  const stopRecognition = () => {
+    const recog = recognitionRef.current;
+    if (!recog) return;
+    try {
+      recog.stop();
+    } catch (e) {
+      console.warn('Error stopping recognition', e);
+    }
+    recognitionRef.current = null;
+    setRecognizing(false);
   };
 
   return (
-    <div className="voice-interface-container flex flex-col items-center justify-center p-4">
-      {!token ? (
-        <button
-          onClick={connectToVoice}
-          disabled={connecting}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]"
-        >
-          {connecting ? 'Connecting...' : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-              Start Voice Mode
-            </>
-          )}
-        </button>
-      ) : (
-        <div className="livekit-room-wrapper flex flex-col items-center gap-4 bg-gray-900/80 p-4 rounded-xl border border-cyan-500/30">
-          <button onClick={disconnect} className="text-red-400 hover:text-red-300 text-xs uppercase tracking-wider mb-2">End Call</button>
-          <LiveKitRoom
-            serverUrl={livekitUrl}
-            token={token}
-            connect={true}
-            audio={true}
-            video={false}
-          >
-            <RoomAudioRenderer />
-            <VoiceAssistantControlBar />
-            <AgentStateDisplay />
-          </LiveKitRoom>
+    <div className="voice-interface-container relative flex flex-col items-center justify-center">
+      <button
+        onClick={() => (recognizing ? stopRecognition() : startRecognition())}
+        title={recognizing ? "Stop Listening" : "Start Voice Mode"}
+        className={`p-3 rounded-xl transition-colors flex-shrink-0 border shadow-[0_0_15px_rgba(6,182,212,0.3)] ${
+          recognizing 
+            ? 'bg-red-500/20 text-red-400 border-red-500/50 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+            : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 hover:bg-cyan-500/30'
+        }`}
+      >
+        {recognizing ? (
+          <div className="relative w-5 h-5 flex items-center justify-center">
+             <span className="absolute w-full h-full bg-red-400 rounded-full animate-ping opacity-75" />
+             <div className="w-2 h-2 bg-red-400 rounded-sm relative z-10" />
+          </div>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+        )}
+      </button>
+
+      {error && (
+        <div className="absolute bottom-full right-0 mb-4 bg-red-900/90 text-red-200 text-xs p-2 rounded border border-red-500/50 whitespace-nowrap">
+          {error}
         </div>
       )}
-      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-    </div>
-  );
-}
-
-function AgentStateDisplay() {
-  const { state } = useVoiceAssistant();
-  
-  let label = 'Connecting...';
-  if (state === 'listening') label = 'Listening...';
-  if (state === 'speaking') label = 'Jarvis is speaking...';
-  if (state === 'thinking') label = 'Thinking...';
-  
-  return (
-    <div className="text-cyan-400 font-mono text-sm mt-2 animate-pulse">
-      {label}
     </div>
   );
 }

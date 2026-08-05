@@ -3,6 +3,9 @@ import json
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from livekit import api
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter(prefix="/api/livekit", tags=["LiveKit"])
 
@@ -22,8 +25,8 @@ async def generate_token(request: TokenRequest):
     if not api_key or not api_secret:
         raise HTTPException(status_code=500, detail="LIVEKIT_API_KEY or LIVEKIT_API_SECRET not configured on the backend.")
 
-    # We use a static room name for this user, e.g., 'room-<user_id>'
-    room_name = f"room-{request.user_id}"
+    import uuid
+    room_name = f"room-{request.user_id}-{uuid.uuid4().hex[:8]}"
     participant_identity = f"user-{request.user_id}"
 
     metadata = json.dumps({

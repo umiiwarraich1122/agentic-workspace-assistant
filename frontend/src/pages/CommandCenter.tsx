@@ -98,6 +98,7 @@ export function CommandCenter() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [aiState, setAiState] = useState<AIState>('idle');
+  const [voiceDraftText, setVoiceDraftText] = useState('');
   
   const [threads, setThreads] = useState<any[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string>('');
@@ -163,6 +164,7 @@ export function CommandCenter() {
   const createNewChat = () => {
     setActiveThreadId(crypto.randomUUID());
     setMessages([]);
+    setVoiceDraftText('');
   };
 
   const loadChat = async (threadId: string) => {
@@ -176,6 +178,7 @@ export function CommandCenter() {
           content: m.content,
           timestamp: new Date(m.timestamp)
         })));
+        setVoiceDraftText('');
       } else {
         setMessages([{
           id: crypto.randomUUID(),
@@ -183,6 +186,7 @@ export function CommandCenter() {
           content: 'Resumed conversation. How can I continue to help you?',
           timestamp: new Date()
         }]);
+        setVoiceDraftText('');
       }
     } catch (e) {
       console.error("Failed to load messages", e);
@@ -192,6 +196,7 @@ export function CommandCenter() {
         content: 'Failed to load conversation history.',
         timestamp: new Date()
       }]);
+      setVoiceDraftText('');
     }
   };
 
@@ -218,18 +223,39 @@ export function CommandCenter() {
     }
   };
 
-  const handleSend = async (overrideText?: string) => {
-    const textToSend = overrideText || input;
-    if (!textToSend.trim() || !user) return;
+  const updateVoiceDraftMessage = (text: string) => {
+    console.debug('[CommandCenter] voice transcript update:', text);
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setVoiceDraftText('');
+      return;
+    }
 
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      sender: 'user',
-      content: textToSend.trim(),
-      timestamp: new Date(),
-    };
+    console.debug('[VoiceDraft] updating live transcript', trimmed);
+    setVoiceDraftText(trimmed);
+  };
 
-    setMessages((prev) => [...prev, userMsg]);
+  const handleSend = async (
+overrideText?: string,
+source: 'text' | 'voice' = 'text'
+  ) => {
+const textToSend = overrideText || input;
+if (!textToSend.trim() || !user) return;
+const messageId = crypto.randomUUID();
+const userMsg: ChatMessage = {
+  id: messageId,
+  sender: 'user',
+  content: textToSend.trim(),
+  timestamp: new Date(),
+  source,
+};
+console.debug('[VoiceSend] final voice text', messageId, textToSend.trim(), { source });
+
+setMessages((prev) => [...prev, userMsg]);
+if (source === 'voice') {
+  setVoiceDraftText('');
+}
+
     setInput('');
     setAiState('thinking');
 
@@ -369,6 +395,14 @@ export function CommandCenter() {
       };
 
       setMessages((prev) => [...prev, aiMsg]);
+      
+      if (source === 'voice' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(plainTextContent);
+        utter.lang = 'en-US';
+        window.speechSynthesis.speak(utter);
+      }
+      
       setTimeout(() => setAiState('idle'), 3000);
       loadThreads(); // Refresh thread list
     } catch (error: any) {
@@ -497,7 +531,7 @@ export function CommandCenter() {
                       {msg.sender === 'user' && (
                         <div className="flex justify-end items-center gap-2 mb-3 pb-2 border-b border-white/10">
                           <span className="text-[10px] text-blue-300 tracking-widest uppercase font-bold">
-                            Command Authorized
+                            {msg.source === 'voice' ? 'Voice Command' : 'Text Command'}
                           </span>
                           <div className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
                         </div>
@@ -515,6 +549,22 @@ export function CommandCenter() {
                 );
               })}
             </AnimatePresence>
+          )}
+
+          {voiceDraftText && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex w-full justify-end"
+            >
+              <div className="rounded-2xl px-6 py-5 backdrop-blur-2xl border border-blue-500/20 bg-blue-900/30 text-blue-100 shadow-2xl max-w-[75%]">
+                <div className="flex justify-end items-center gap-2 mb-3 pb-2 border-b border-white/10">
+                  <span className="text-[10px] text-blue-300 tracking-widest uppercase font-bold">Voice Draft</span>
+                  <div className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
+                </div>
+                <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed drop-shadow-md">{voiceDraftText}</div>
+              </div>
+            </motion.div>
           )}
 
           {aiState === 'thinking' && (
@@ -545,9 +595,6 @@ export function CommandCenter() {
         </div>
 
         <div className="px-6 sm:px-12 pb-8 pt-4 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent z-20">
-          <div className="flex justify-center mb-4">
-            <VoiceInterface userId={user?.userId || 'anonymous'} accessToken={user?.accessToken || ''} />
-          </div>
           <div className="flex overflow-x-auto gap-3 mb-4 pb-2 scrollbar-hide mask-fade-edges">
             {SUGGESTIONS.map((sug, i) => (
               <motion.button
@@ -574,6 +621,14 @@ export function CommandCenter() {
               setAttachedFilename(null);
             }}
             isUploading={isUploading}
+            rightAddon={
+              <VoiceInterface
+                userId={user?.userId || 'anonymous'}
+                accessToken={user?.accessToken || ''}
+                onVoiceTranscript={updateVoiceDraftMessage}
+                onVoiceCommand={(message) => handleSend(message, 'voice')}
+              />
+            }
           />
         </div>
       </div>

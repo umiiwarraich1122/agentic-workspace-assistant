@@ -11,7 +11,7 @@ import { SystemStatusBar } from './SystemStatusBar';
 import { TodayCalendarWidget, UnreadEmailsWidget, PendingTasksWidget } from '../components/widgets/DashboardWidgets';
 
 export function OSLayout() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,11 +20,13 @@ export function OSLayout() {
   };
 
   React.useEffect(() => {
-    // Auto-sync emails in the background when logging in
-    import('../services/api').then(({ api }) => {
-      api.get('/emails/sync').catch(console.error);
-    });
-  }, []);
+    // Auto-sync emails in the background when a user is available
+    if (!user || !user.userId) return;
+    import('../services/api').then(({ chatService }) => {
+      // chatService.syncData sets the required X-User-Id header for requests
+      chatService.syncData(user.userId).catch(console.error);
+    }).catch(console.error);
+  }, [user]);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/chat' },
