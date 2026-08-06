@@ -1,14 +1,15 @@
 import logging
 from dotenv import load_dotenv
-from livekit.agents import AutoSubscribe, JobContext, JobProcess, WorkerOptions, cli, llm, TurnHandlingOptions, EndpointingOptions, InterruptionOptions, PreemptiveGenerationOptions
+from livekit.agents import AutoSubscribe, JobContext, JobProcess, WorkerOptions, cli, llm, TurnHandlingOptions, EndpointingOptions, InterruptionOptions, PreemptiveGenerationOptions, inference
 from livekit.agents.voice import Agent as VoicePipelineAgent
-from livekit.plugins import openai, cartesia, silero, inference, ai_coustics
+from livekit.plugins import openai, cartesia, silero, ai_coustics
 from livekit_agent.tool_bridge import JarvisToolBridge
 from livekit_agent.session_manager import get_voice_system_prompt
 import json
 import os
 
 load_dotenv()
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("voice-agent")
 
 def prewarm(proc: JobProcess):
@@ -19,17 +20,21 @@ def prewarm(proc: JobProcess):
 async def entrypoint(ctx: JobContext):
     # Retrieve user tokens from the job metadata or attributes.
     # The frontend must pass `metadata` containing access_token and user_id when creating the token.
-    metadata_str = ctx.job.metadata
+    metadata_val = ctx.job.metadata
     access_token = ""
     user_id = ""
-    
-    try:
-        if metadata_str:
-            meta = json.loads(metadata_str)
-            access_token = meta.get("access_token", "")
-            user_id = meta.get("user_id", "")
-    except Exception as e:
-        logger.error(f"Failed to parse metadata: {e}")
+    meta = {}
+
+    if isinstance(metadata_val, str):
+        try:
+            meta = json.loads(metadata_val)
+        except Exception as e:
+            logger.error("Failed to parse metadata JSON: %s", e)
+    elif isinstance(metadata_val, dict):
+        meta = metadata_val
+
+    access_token = meta.get("access_token", "")
+    user_id = meta.get("user_id", "")
 
     initial_ctx = llm.ChatContext()
     # Instructions are passed separately to the VoicePipelineAgent. Keep the chat context empty for session history.
@@ -60,6 +65,21 @@ async def entrypoint(ctx: JobContext):
             stt_impl = None
     else:
         logger.info("No OPENAI_API_KEY or GROQ_API_KEY found; server-side STT will be disabled.")
+
+    # Choose LLM provider/key
+    llm_api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("GROQ_API_KEY")
+    llm_base = None
+    if os.environ.get("GROQ_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+        llm_base = "https://api.groq.com/openai/v1"
+        logger.info("Using GROQ for LLM")
+    else:
+        logger.info("Using OpenAI for LLM")
+
+    llm_impl = openai.LLM(
+        model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+        base_url=llm_base,
+        api_key=llm_api_key or ""
+    )
 
     agent = VoicePipelineAgent(
         instructions=get_voice_system_prompt(),
@@ -96,22 +116,36 @@ async def entrypoint(ctx: JobContext):
         min_consecutive_speech_delay=0.3,
         
         stt=stt_impl,
-        llm=openai.LLM(
-            model="llama-3.1-8b-instant",
-            base_url="https://api.groq.com/openai/v1",
-            api_key=os.environ.get("GROQ_API_KEY") or "dummy"
-        ),
+        llm=llm_impl,
         tts=cartesia.TTS(api_key=os.environ.get("CARTESIA_API_KEY", "dummy_key")),
         chat_ctx=initial_ctx,
         fnc_ctx=JarvisToolBridge(access_token=access_token, user_id=user_id),
         
         # 6. Audio Processing: Enable AI-Coustics voice isolation
-        enhancer=ai_coustics.AICousticsAudioEnhancer(model=ai_coustics.EnhancerModel.QUAIL_VF_L)
+        enhancer=ai_coustics.AICousticsAudioEnhancer(
+            model=ai_coustics.EnhancerModel.QUAIL_VF_L,
+            vad_settings=ai_coustics.VadSettings(
+                speech_hold_duration=0.5,
+                sensitivity=0.5,
+                minimum_speech_duration=0.1
+            )
+        )
     )
 
-    agent.start(ctx.room)
-    
-    await agent.say("Hello, I am Jarvis. How can I assist you today?", allow_interruptions=True)
+    try:
+        agent.start(ctx.room)
+        await agent.say("Hello, I am Jarvis. How can I assist you today?", allow_interruptions=True)
+    except Exception as e:
+        logger.exception("Agent runtime error: %s", e)
+    finally:
+        try:
+            agent.stop()
+        except Exception:
+            pass
+        try:
+            await ctx.disconnect()
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm))
