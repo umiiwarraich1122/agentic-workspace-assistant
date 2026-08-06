@@ -20,18 +20,14 @@ def get_latest_news() -> str:
         items = channel.findall("item")
         news_list = []
         
-        # Get top 10 news items
-        for item in items[:10]:
+        # Get top 1 news item to save LLM tokens and per user request
+        for item in items[:1]:
             title = item.find("title").text if item.find("title") is not None else "No title"
             description = item.find("description").text if item.find("description") is not None else "No description"
-            link = item.find("link").text if item.find("link") is not None else ""
-            pub_date = item.find("pubDate").text if item.find("pubDate") is not None else ""
             
             news_list.append({
                 "title": title,
-                "summary": description,
-                "link": link,
-                "published_at": pub_date
+                "summary": description
             })
             
         return json.dumps(news_list)

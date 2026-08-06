@@ -16,7 +16,7 @@ def get_todo_tools(access_token: str, user_id: str):
             response = supabase.table("tasks").select("*").eq("user_id", user_id).limit(top).execute()
             tasks = response.data
             if not tasks:
-                return "No tasks found in the database. You might need to sync first."
+                return "Error: I do not have access or cannot fetch your tasks."
             formatted = []
             for t in tasks:
                 formatted.append({

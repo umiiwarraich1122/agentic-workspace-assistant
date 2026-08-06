@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/api';
@@ -7,7 +8,7 @@ import { CyberInput } from '../components/ui/CyberInput';
 import { AICore } from '../components/os/AICore';
 import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
-import { Plus, MessageSquare, RefreshCw, Trash2, LogOut } from 'lucide-react';
+import { Plus, MessageSquare, RefreshCw, Trash2, LogOut, Globe } from 'lucide-react';
 import { AIOfficeScene } from '../components/office/AIOfficeScene';
 import { VoiceInterface } from '../components/voice/VoiceInterface';
 import { OfficeTaskEngine } from '../components/office/OfficeTaskEngine';
@@ -95,6 +96,7 @@ function MessageRenderer({ msg, userId }: { msg: ChatMessage; userId?: string })
 // ─── CommandCenter ────────────────────────────────────────────────────────────
 export function CommandCenter() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [aiState, setAiState] = useState<AIState>('idle');
@@ -622,12 +624,22 @@ if (source === 'voice') {
             }}
             isUploading={isUploading}
             rightAddon={
-              <VoiceInterface
-                userId={user?.userId || 'anonymous'}
-                accessToken={user?.accessToken || ''}
-                onVoiceTranscript={updateVoiceDraftMessage}
-                onVoiceCommand={(message) => handleSend(message, 'voice')}
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  title="Voice World"
+                  className="w-10 h-10 rounded-xl bg-cyan-950/40 border border-cyan-800/30 flex items-center justify-center text-cyan-400 hover:bg-cyan-900/50 hover:text-cyan-300 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                  onClick={() => navigate('/chat/voice-world')}
+                >
+                  <Globe className="w-5 h-5" />
+                </button>
+                <VoiceInterface
+                  userId={user?.userId || 'anonymous'}
+                  accessToken={user?.accessToken || ''}
+                  onVoiceTranscript={updateVoiceDraftMessage}
+                  onVoiceCommand={(message) => handleSend(message, 'voice')}
+                />
+              </div>
             }
           />
         </div>

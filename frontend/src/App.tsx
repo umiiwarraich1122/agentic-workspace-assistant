@@ -7,6 +7,7 @@ import { CommandCenter } from './pages/CommandCenter';
 import { EmailModule } from './pages/EmailModule';
 import { CalendarModule } from './pages/CalendarModule';
 import { TasksModule } from './pages/TasksModule';
+import { VoiceWorld } from './pages/VoiceWorld';
 import { OSLayout } from './layouts/OSLayout';
 import { GlobalEnvironment } from './components/os/GlobalEnvironment';
 import { AICore } from './components/os/AICore';
@@ -106,6 +107,12 @@ function App() {
             <Route path="calendar" element={<CalendarModule />} />
             <Route path="tasks" element={<TasksModule />} />
           </Route>
+
+          <Route path="/chat/voice-world" element={
+            <PrivateRoute>
+              <VoiceWorld />
+            </PrivateRoute>
+          } />
           
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
