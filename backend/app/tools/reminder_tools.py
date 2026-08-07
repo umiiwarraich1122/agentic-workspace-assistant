@@ -16,7 +16,7 @@ class ReminderInput(BaseModel):
     delay_minutes: float = Field(description="How many minutes from now to show the reminder. (e.g. 0.5 for 30 seconds)")
 
 @tool("set_reminder", args_schema=ReminderInput)
-def set_reminder(message: str, delay_minutes: float, config: RunnableConfig) -> str:
+async def set_reminder(message: str, delay_minutes: float, config: RunnableConfig) -> str:
     """
     Sets a reminder that will pop up on the user's Jarvis screen after a specified number of minutes.
     Use this tool when the user asks you to remind them about something.
