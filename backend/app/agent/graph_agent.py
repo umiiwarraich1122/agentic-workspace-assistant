@@ -105,7 +105,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
             "IMPORTANT: 1. You may respond in normal plain text for conversational replies and email drafts. "
             "2. ONLY when displaying a list of emails from the database, you MUST output a JSON object with an 'emails' array. "
             "3. When drafting an email, FIRST call the create_email_draft tool, then output the draft in plain text using this EXACT format: '📧 Email 1\\n\\nTo:\\n<recipient>\\n\\nSubject:\\n<subject>\\n\\nBody:\\n<body>', and ask the user 'Would you like me to send this email now?'. If they reply 'yes' or 'send it', use the send_email_draft tool. "
-            "4. Be extremely concise but ALWAYS provide a helpful response. Do not ever just reply with the word 'nothing' or an empty message.\n"
+            "4. ALWAYS provide a helpful response in plain text confirming what you have done after executing a tool (e.g., 'I have set the reminder for you.').\n"
             "5. When a tool returns data (like news, tasks, or calendar events), ALWAYS summarize that data in plain text for the user.\n"
             "6. REMINDER RULE: If the user asks you to 'remind me' about something, YOU MUST ONLY USE THE `set_reminder` TOOL. Do NOT draft or send an email unless explicitly asked to send an email.\n\n"
             "ROUTING DIRECTIVES:\n"
