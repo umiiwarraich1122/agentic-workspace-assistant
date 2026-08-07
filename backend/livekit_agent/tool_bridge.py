@@ -104,14 +104,9 @@ class JarvisToolBridge(llm.ToolContext):
         return await self._execute_tool('create_folder', kwargs, use_filler=False)
 
     @llm.function_tool(description="Sets a reminder to notify the user later. Use this when the user asks you to remind them of something.")
-    async def set_reminder(self, message: str, delay_minutes: float) -> str:
-        # We need to manually construct a RunnableConfig-like object since tool_bridge executes it directly.
-        # But wait, our `set_reminder` tool in `reminder_tools.py` expects `config`.
-        # Let's pass the user_id manually or update the tool to accept user_id.
-        # Actually, in `tool_bridge.py`, we can inject the config.
-        kwargs = {"message": message, "delay_minutes": delay_minutes}
-        # In langchain tools, you can invoke with a second config parameter
-        # return await self.lc_tools['set_reminder'].ainvoke(kwargs, config={"configurable": {"user_id": self.user_id}})
+    async def set_reminder(self, reminder_text: str, delay: float) -> str:
+        # We map the hallucination-prone arguments (reminder_text, delay) to the actual tool (message, delay_minutes).
+        kwargs = {"message": reminder_text, "delay_minutes": delay}
         try:
             tool = self.lc_tools['set_reminder']
             return await tool.ainvoke(kwargs, config={"configurable": {"user_id": self.user_id}})
