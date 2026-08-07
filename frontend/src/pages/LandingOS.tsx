@@ -98,7 +98,7 @@ export function LandingOS() {
             >
               <h1 className="text-4xl sm:text-6xl font-bold tracking-widest mb-4 uppercase">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-cyan-500">
-                  Jarvis OS
+                  MR.JARVIS
                 </span>
               </h1>
               <p className="text-gray-400 text-sm sm:text-lg max-w-xl mx-auto mb-8 font-mono">
