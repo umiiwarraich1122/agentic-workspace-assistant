@@ -160,7 +160,7 @@ export function CalendarModule() {
                 {/* Manual Delete Button */}
                 <button
                   onClick={(e) => openDeleteModal(ev, e)}
-                  className="p-2.5 rounded-xl bg-red-950/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 hover:border-red-400 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  className="p-2.5 rounded-xl bg-red-950/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 hover:border-red-400 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
                   title="Delete Event"
                 >
                   <Trash2 className="w-4 h-4" />

@@ -448,7 +448,7 @@ if (source === 'voice') {
   return (
     <div className="flex h-full w-full bg-gray-950 overflow-hidden text-white relative">
       {/* Sidebar for Chat History */}
-      <aside className="w-64 border-r border-cyan-900/30 bg-gray-950/80 backdrop-blur-xl flex flex-col flex-shrink-0 z-20 hidden md:flex">
+      <aside className="w-64 border-r border-cyan-900/30 bg-gray-950/80 backdrop-blur-xl flex-col flex-shrink-0 z-20 hidden md:flex">
         <div className="p-4 border-b border-cyan-900/30 flex items-center justify-between">
           <button 
             onClick={createNewChat}
@@ -518,7 +518,7 @@ if (source === 'voice') {
           <AIOfficeScene isThinking={aiState === 'thinking'} />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 z-10 scrollbar-hide space-y-8">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-8 py-4 sm:py-6 z-10 scrollbar-hide space-y-6 sm:space-y-8">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center">
                <h2 className="text-2xl font-mono text-cyan-400 tracking-[0.2em] mb-4">MR. Jarvis</h2>
@@ -539,7 +539,7 @@ if (source === 'voice') {
                     <div
                       className={[
                         'rounded-2xl px-6 py-5 backdrop-blur-2xl border shadow-2xl',
-                        isStructured ? 'w-full max-w-full' : 'max-w-[75%]',
+                        isStructured ? 'w-full max-w-full' : 'max-w-[90%] md:max-w-[75%]',
                         msg.sender === 'user'
                           ? 'bg-blue-900/30 text-blue-50 border-blue-400/40 shadow-[0_0_30px_rgba(59,130,246,0.15)]'
                           : 'bg-cyan-950/40 text-cyan-50 border-cyan-400/40 shadow-[0_0_30px_rgba(6,182,212,0.15)]',
@@ -582,7 +582,7 @@ if (source === 'voice') {
               animate={{ opacity: 1, y: 0 }}
               className="flex w-full justify-end"
             >
-              <div className="rounded-2xl px-6 py-5 backdrop-blur-2xl border border-blue-500/20 bg-blue-900/30 text-blue-100 shadow-2xl max-w-[75%]">
+              <div className="rounded-2xl px-6 py-5 backdrop-blur-2xl border border-blue-500/20 bg-blue-900/30 text-blue-100 shadow-2xl max-w-[90%] md:max-w-[75%]">
                 <div className="flex justify-end items-center gap-2 mb-3 pb-2 border-b border-white/10">
                   <span className="text-[10px] text-blue-300 tracking-widest uppercase font-bold">Voice Draft</span>
                   <div className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
@@ -619,7 +619,7 @@ if (source === 'voice') {
           <div ref={messagesEndRef} className="h-10" />
         </div>
 
-        <div className="px-6 sm:px-12 pb-8 pt-4 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent z-20">
+        <div className="px-3 sm:px-12 pb-4 sm:pb-8 pt-4 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent z-20">
           <div className="flex overflow-x-auto gap-3 mb-4 pb-2 scrollbar-hide mask-fade-edges">
             {SUGGESTIONS.map((sug, i) => (
               <motion.button

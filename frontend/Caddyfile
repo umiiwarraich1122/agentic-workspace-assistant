@@ -5,9 +5,6 @@ mr-jarvis.tech, www.mr-jarvis.tech {
     handle /auth* {
         reverse_proxy backend-api:8000
     }
-    handle /chat* {
-        reverse_proxy backend-api:8000
-    }
     handle /emails* {
         reverse_proxy backend-api:8000
     }

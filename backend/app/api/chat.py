@@ -11,8 +11,7 @@ import datetime
 import json
 
 logger = logging.getLogger(__name__)
-
-router = APIRouter(prefix="/chat", tags=["Agent Chat"])
+router = APIRouter(prefix="/api/chat", tags=["Agent Chat"])
 
 def get_thread_state(thread_id: str):
     supabase = get_supabase()

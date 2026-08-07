@@ -12,7 +12,7 @@ export const chatService = {
     const local_time = new Date().toLocaleString();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     
-    const response = await fetch(`${api.defaults.baseURL}/chat`, {
+    const response = await fetch(`${api.defaults.baseURL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -61,7 +61,7 @@ export const chatService = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('user_id', userId);
-    const response = await api.post('/chat/upload', formData, {
+    const response = await api.post('/api/chat/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -69,15 +69,15 @@ export const chatService = {
     return response.data;
   },
   getThreads: async (userId: string) => {
-    const response = await api.get('/chat/threads', { params: { user_id: userId } });
+    const response = await api.get('/api/chat/threads', { params: { user_id: userId } });
     return response.data;
   },
   getThreadMessages: async (threadId: string) => {
-    const response = await api.get(`/chat/threads/${threadId}`);
+    const response = await api.get(`/api/chat/threads/${threadId}`);
     return response.data;
   },
   deleteThread: async (threadId: string) => {
-    const response = await api.delete(`/chat/threads/${threadId}`);
+    const response = await api.delete(`/api/chat/threads/${threadId}`);
     return response.data;
   },
   syncData: async (userId: string) => {

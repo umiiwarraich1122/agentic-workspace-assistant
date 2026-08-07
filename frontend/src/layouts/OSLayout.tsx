@@ -42,38 +42,43 @@ export function OSLayout() {
       <SystemStatusBar />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Cinematic Left Nav Rail */}
+        {/* Left Navigation Rail (Desktop) & Bottom Navigation Bar (Mobile) */}
         <motion.nav 
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-          className="w-16 hover:w-48 group flex-shrink-0 border-r border-cyan-900/30 bg-gray-950/60 backdrop-blur-3xl flex flex-col py-6 z-40 transition-[width] duration-300 ease-out overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="fixed bottom-0 left-0 right-0 h-16 md:h-auto md:relative md:w-16 md:hover:w-48 group flex-shrink-0 border-t md:border-t-0 md:border-r border-cyan-900/30 bg-gray-950/90 backdrop-blur-3xl flex md:flex-col md:py-6 z-40 transition-[width] duration-300 ease-out md:overflow-hidden flex-row justify-around md:justify-start items-center md:items-stretch"
         >
-          <div className="flex-1 flex flex-col gap-2 w-full px-2 mt-4">
+          <div className="flex-1 flex flex-row md:flex-col gap-1 md:gap-2 w-full md:px-2 md:mt-4 h-full items-center justify-around md:justify-start">
             {navItems.map((item, idx) => {
-              const isActive = window.location.pathname === item.path || (item.path === '/chat' && window.location.pathname === '/chat'); // Simplified active check
+              const isActive = window.location.pathname === item.path || (item.path === '/chat' && window.location.pathname === '/chat');
               return (
                 <button 
                   key={idx} 
                   onClick={() => navigate(item.path)}
                   className={`
-                    relative flex items-center w-full px-3 py-3 rounded-xl transition-all duration-300
-                    ${isActive ? 'bg-cyan-500/20 shadow-[inset_0_0_20px_rgba(6,182,212,0.2)]' : 'hover:bg-cyan-500/10'}
+                    relative flex md:items-center justify-center md:justify-start w-12 md:w-full h-12 md:h-auto md:px-3 md:py-3 rounded-xl transition-all duration-300 flex-col md:flex-row
+                    ${isActive ? 'bg-cyan-500/20 shadow-[inset_0_0_20px_rgba(6,182,212,0.2)] text-cyan-400' : 'hover:bg-cyan-500/10 text-cyan-600'}
                   `}
                 >
                   {isActive && (
-                    <motion.div layoutId="activeNav" className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-cyan-400 rounded-r-full shadow-[0_0_10px_#22d3ee]" />
+                    <>
+                      <motion.div layoutId="activeNavDesktop" className="hidden md:block absolute left-0 top-1/4 bottom-1/4 w-1 bg-cyan-400 rounded-r-full shadow-[0_0_10px_#22d3ee]" />
+                      <motion.div layoutId="activeNavMobile" className="md:hidden absolute top-0 left-1/4 right-1/4 h-1 bg-cyan-400 rounded-b-full shadow-[0_0_10px_#22d3ee]" />
+                    </>
                   )}
                   <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-cyan-400' : 'text-cyan-600 group-hover:text-cyan-400'}`} />
-                  <span className="ml-4 font-mono text-sm tracking-widest text-cyan-100 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">
+                  <span className="hidden md:block ml-4 font-mono text-sm tracking-widest text-cyan-100 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">
                     {item.label}
                   </span>
+                  {/* Small label for mobile if wanted, or just icon. Let's just use icon for mobile */}
+                  <span className="md:hidden text-[9px] font-mono mt-1 opacity-70 truncate">{item.label}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex flex-col gap-2 mt-auto w-full px-2">
+          <div className="hidden md:flex flex-col gap-2 mt-auto w-full px-2">
             <button onClick={handleLogout} className="relative flex items-center w-full px-3 py-3 rounded-xl hover:bg-red-500/10 transition-colors">
               <LogOut className="w-5 h-5 text-cyan-800 group-hover:text-red-400 flex-shrink-0 transition-colors" />
               <span className="ml-4 font-mono text-sm tracking-widest text-red-400 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">
@@ -84,7 +89,7 @@ export function OSLayout() {
         </motion.nav>
 
         {/* Center Workspace (The Command Center) */}
-        <main className="flex-1 relative z-10 flex flex-col min-w-0">
+        <main className="flex-1 relative z-10 flex flex-col min-w-0 pb-16 md:pb-0">
           <Outlet />
         </main>
 

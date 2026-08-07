@@ -145,7 +145,7 @@ export function TasksModule() {
                 {/* Manual Delete Button */}
                 <button
                   onClick={(e) => openDeleteModal(task, e)}
-                  className="p-2 rounded-lg bg-red-950/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 hover:border-red-400 transition-all opacity-0 group-hover:opacity-100 cursor-pointer ml-2"
+                  className="p-2 rounded-lg bg-red-950/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 hover:border-red-400 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer ml-2"
                   title="Delete Task"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

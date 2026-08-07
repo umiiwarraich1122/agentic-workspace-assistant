@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Sparkles, Send, Check, RefreshCw, X } from 'lucide-react';
+import { Mail, Sparkles, Send, Check, RefreshCw, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { googleService, chatService } from '../services/api';
 
@@ -78,10 +78,10 @@ export function EmailModule() {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-6 min-h-0">
+      <div className="flex flex-col md:flex-row flex-1 gap-6 min-h-0">
         
         {/* Left Column: Email List */}
-        <div className="w-1/3 flex flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide">
+        <div className={`${selectedEmail ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide`}>
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
@@ -112,12 +112,18 @@ export function EmailModule() {
         </div>
 
         {/* Right Column: Email Viewer & AI Reply */}
-        <div className="flex-1 flex flex-col bg-gray-950/60 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative">
+        <div className={`${!selectedEmail ? 'hidden md:flex' : 'flex'} w-full md:w-2/3 flex-col bg-gray-950/60 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative`}>
           
           {selectedEmail ? (
             <>
               {/* Header */}
-              <div className="p-6 border-b border-white/10 bg-gradient-to-b from-blue-900/20 to-transparent">
+              <div className="p-4 md:p-6 border-b border-white/10 bg-gradient-to-b from-blue-900/20 to-transparent">
+                <button 
+                  onClick={() => setSelectedEmail(null)}
+                  className="md:hidden flex items-center gap-1 text-blue-400 text-sm font-mono mb-4 hover:text-blue-300"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Back to list
+                </button>
                 <h2 className="text-xl font-bold text-white mb-2">{selectedEmail.subject}</h2>
                 <div className="text-sm font-mono text-blue-300">From: {selectedEmail.sender || selectedEmail.from}</div>
                 {selectedEmail.receivedDateTime && (
