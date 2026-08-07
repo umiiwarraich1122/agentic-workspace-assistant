@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 # Wait, we can't easily import `send_notification` if it requires user_id without passing user_id to the tool.
 # In LangGraph, we can access user_id from config["configurable"]["user_id"].
 
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 class ReminderInput(BaseModel):
     message: str = Field(description="The reminder message to show the user. (e.g. 'Drink water')")
