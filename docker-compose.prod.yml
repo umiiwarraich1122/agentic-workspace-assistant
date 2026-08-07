@@ -1,4 +1,4 @@
-# version attribute removed — obsolete in modern Docker Compose
+version: '3.8'
 
 services:
   # -- FastAPI Backend API --------------------------------------
@@ -7,12 +7,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: mr-jarvis-api
-    ports:
-      - "8000:8000"
+    # We no longer expose port 8000 to the host! Caddy proxies internally.
     env_file:
       - ./backend/.env
     volumes:
-      # Persist tokens_db.json so Google auth tokens survive redeploys
       - jarvis_tokens:/app/tokens_db.json
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
     restart: always
@@ -32,14 +30,13 @@ services:
     env_file:
       - ./backend/.env
     volumes:
-      # Share the same token store as the API so voice agent can read tokens
       - jarvis_tokens:/app/tokens_db.json
     command: python -m livekit_agent.agent start
     restart: always
     depends_on:
       - backend-api
 
-  # -- React Frontend (Nginx) -----------------------------------
+  # -- Caddy (Frontend + Reverse Proxy) -------------------------
   frontend:
     build:
       context: ./frontend
@@ -47,13 +44,19 @@ services:
       args:
         VITE_API_URL: https://mr-jarvis.tech
         VITE_LIVEKIT_URL: wss://mr-jarvis-jj6lb16p.livekit.cloud
-    container_name: mr-jarvis-frontend
+    container_name: mr-jarvis-caddy
     ports:
-      - "3000:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Persist Caddy's certificates to avoid hitting Let's Encrypt rate limits
+      - caddy_data:/data
+      - caddy_config:/config
     restart: always
     depends_on:
       - backend-api
 
-# Named volume to persist tokens_db.json across redeploys
 volumes:
   jarvis_tokens:
+  caddy_data:
+  caddy_config:

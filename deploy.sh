@@ -1,33 +1,31 @@
 #!/bin/bash
-# ============================================================
-# MR Jarvis — Production Deployment Script
-# Usage: bash deploy.sh
-# Run this on your Ubuntu server after cloning the repo.
-# ============================================================
-set -e  # Exit immediately on error
+set -e
 
 echo "????????????????????????????????????????????????"
-echo "  MR Jarvis — Deployment Script"
+echo "  MR Jarvis — Caddy Deployment Script"
 echo "????????????????????????????????????????????????"
 
-# 1. Pull latest code from GitHub
-echo "[1/5] Pulling latest code from GitHub..."
+# 1. Stop host Nginx if it's running (to free up ports 80/443 for Caddy)
+if systemctl is-active --quiet nginx; then
+    echo "[!] Stopping host Nginx to free up ports..."
+    sudo systemctl stop nginx
+    sudo systemctl disable nginx
+fi
+
+# 2. Pull latest code from GitHub
+echo "[1/4] Pulling latest code from GitHub..."
 git pull origin main
 
-# 2. Stop running containers gracefully
-echo "[2/5] Stopping existing containers..."
-docker compose -f docker-compose.prod.yml down --remove-orphans
-
 # 3. Build and start all containers
-echo "[3/5] Building and starting all containers..."
+echo "[2/4] Building and starting all containers..."
 docker compose -f docker-compose.prod.yml up -d --build
 
-# 4. Clean up old unused Docker images to save disk space
-echo "[4/5] Cleaning up old Docker images..."
+# 4. Clean up old unused Docker images
+echo "[3/4] Cleaning up old Docker images..."
 docker image prune -f
 
 # 5. Show running containers
-echo "[5/5] Deployment complete! Running containers:"
+echo "[4/4] Deployment complete! Running containers:"
 docker compose -f docker-compose.prod.yml ps
 
 echo ""

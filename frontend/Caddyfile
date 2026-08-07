@@ -1,0 +1,14 @@
+mr-jarvis.tech, www.mr-jarvis.tech {
+    # Proxy backend API routes to the FastAPI container
+    @api {
+        path /api/* /auth/* /chat/* /emails/* /calendar/* /todos/* /health/*
+    }
+    reverse_proxy @api backend-api:8000
+
+    # Serve the React Single Page Application (SPA)
+    handle {
+        root * /usr/share/caddy
+        try_files {path} /index.html
+        file_server
+    }
+}
