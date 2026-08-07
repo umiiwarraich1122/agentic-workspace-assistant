@@ -17,8 +17,9 @@ export function EmailModule() {
   const [draftSaved, setDraftSaved] = useState(false);
   const threadId = useRef(crypto.randomUUID()).current;
 
-  useEffect(() => {
+  const fetchEmails = () => {
     if (user?.userId) {
+      setLoading(true);
       googleService.getEmails(user.userId)
         .then(data => {
           if (data && Array.isArray(data.emails)) setEmails(data.emails);
@@ -27,7 +28,22 @@ export function EmailModule() {
         .catch(console.error)
         .finally(() => setLoading(false));
     }
+  };
+
+  useEffect(() => {
+    fetchEmails();
   }, [user]);
+
+  const handleRefresh = async () => {
+    if (!user?.userId) return;
+    setLoading(true);
+    try {
+      await chatService.syncData(user.userId);
+      await fetchEmails();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleGenerateReply = async () => {
     if (!selectedEmail || !user) return;
@@ -82,6 +98,15 @@ export function EmailModule() {
         
         {/* Left Column: Email List */}
         <div className={`${selectedEmail ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide`}>
+          <div className="p-4 border-b border-cyan-900/30 flex justify-between items-center bg-gray-900/50">
+            <h2 className="font-mono text-cyan-400 font-bold tracking-wider">INBOX</h2>
+            <div className="text-xs text-cyan-600 font-mono flex items-center gap-2">
+              <span>{emails.length} TOTAL</span>
+              <button onClick={handleRefresh} className="hover:text-cyan-400 transition-colors" disabled={loading}>
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </div>
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
