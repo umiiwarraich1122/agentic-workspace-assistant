@@ -1,20 +1,23 @@
 mr-jarvis.tech, www.mr-jarvis.tech {
-    handle /api/* {
+    handle /api* {
         reverse_proxy backend-api:8000
     }
-    handle /auth/* {
+    handle /auth* {
         reverse_proxy backend-api:8000
     }
-    handle /chat/* {
+    handle /chat* {
         reverse_proxy backend-api:8000
     }
-    handle /emails/* {
+    handle /emails* {
         reverse_proxy backend-api:8000
     }
-    handle /calendar/* {
+    handle /calendar* {
         reverse_proxy backend-api:8000
     }
-    handle /todos/* {
+    handle /todos* {
+        reverse_proxy backend-api:8000
+    }
+    handle /notifications* {
         reverse_proxy backend-api:8000
     }
     handle /health {
