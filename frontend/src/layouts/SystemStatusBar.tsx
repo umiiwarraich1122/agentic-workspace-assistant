@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Wifi, Server, Activity, User } from 'lucide-react';
+import { Wifi, Server, Activity, User, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export function SystemStatusBar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="h-12 flex items-center justify-between px-6 bg-gray-950/80 backdrop-blur-xl border-b border-cyan-900/30 text-xs font-mono text-cyan-500 z-50">
@@ -48,9 +55,18 @@ export function SystemStatusBar() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 px-3 py-1 bg-cyan-950/40 border border-cyan-900/50 rounded flex-shrink-0">
-          <User className="w-3 h-3 text-cyan-400" />
-          <span className="truncate max-w-[100px]">{user?.name || user?.userId || 'GUEST'}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1 bg-cyan-950/40 border border-cyan-900/50 rounded flex-shrink-0">
+            <User className="w-3 h-3 text-cyan-400" />
+            <span className="truncate max-w-[100px]">{user?.name || user?.userId || 'GUEST'}</span>
+          </div>
+          <button 
+            onClick={handleLogout} 
+            className="md:hidden p-1.5 text-red-400 hover:bg-red-500/20 rounded border border-red-900/30 transition-colors"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>
