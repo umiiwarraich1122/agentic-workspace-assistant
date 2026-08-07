@@ -47,4 +47,4 @@ async def auth_callback(request: Request):
     name = profile.get("name") or profile.get("email") or "User"
 
     # Redirect back to the frontend with user_id and name
-    return RedirectResponse(f"{frontend_base}/auth/callback?user_id={user_id}&name={urllib.parse.quote(name)}")
+    return RedirectResponse(f"{frontend_base}/login/success?user_id={user_id}&name={urllib.parse.quote(name)}")

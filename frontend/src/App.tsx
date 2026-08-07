@@ -95,7 +95,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingOS />} />
-          <Route path="/auth/callback" element={<AuthCallbackHandler />} />
+          <Route path="/login/success" element={<AuthCallbackHandler />} />
           
           <Route path="/chat" element={
             <PrivateRoute>
