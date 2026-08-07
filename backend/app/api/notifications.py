@@ -17,17 +17,20 @@ async def send_notification(user_id: str, message: dict):
         for queue in active_connections[user_id]:
             await queue.put(message)
 
+from fastapi import APIRouter, Request, Header, HTTPException, Query
+
 @router.get("/stream")
-async def notification_stream(request: Request, x_user_id: str = Header(None)):
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="X-User-Id header required")
+async def notification_stream(request: Request, x_user_id: str = Query(None, alias="x_user_id"), header_user_id: str = Header(None, alias="x-user-id")):
+    user_id = x_user_id or header_user_id
+    if not user_id:
+        raise HTTPException(status_code=401, detail="x_user_id query param or X-User-Id header required")
 
     # Create a new queue for this client connection
     client_queue = asyncio.Queue()
     
-    if x_user_id not in active_connections:
-        active_connections[x_user_id] = []
-    active_connections[x_user_id].append(client_queue)
+    if user_id not in active_connections:
+        active_connections[user_id] = []
+    active_connections[user_id].append(client_queue)
 
     async def event_generator():
         try:
@@ -47,10 +50,13 @@ async def notification_stream(request: Request, x_user_id: str = Header(None)):
         except asyncio.CancelledError:
             pass
         finally:
-            if x_user_id in active_connections:
-                active_connections[x_user_id].remove(client_queue)
-                if not active_connections[x_user_id]:
-                    del active_connections[x_user_id]
-            logger.info(f"SSE Client disconnected for user {x_user_id}")
+            if user_id in active_connections:
+                if client_queue in active_connections[user_id]:
+                    active_connections[user_id].remove(client_queue)
+                if not active_connections[user_id]:
+                    del active_connections[user_id]
+            logger.info(f"SSE Client disconnected for user {user_id}")
+
+
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
