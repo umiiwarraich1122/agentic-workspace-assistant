@@ -55,7 +55,7 @@ export function LandingPage() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8"
         >
           <Sparkles className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-gray-300">Introducing Jarvis AI Assistant</span>
+          <span className="text-sm font-medium text-gray-300">Introducing MR.JARVIS AI Assistant</span>
         </motion.div>
 
         <motion.h1 
@@ -133,7 +133,7 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-white/10 py-12 text-center text-gray-500 text-sm mt-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
-          <p className="mb-4 md:mb-0">© 2026 Jarvis AI Assistant. All rights reserved.</p>
+          <p className="mb-4 md:mb-0">© 2026 MR.JARVIS AI Assistant. All rights reserved.</p>
           <div className="flex gap-4">
             <span className="hover:text-white transition-colors cursor-pointer">FastAPI</span>
             <span className="hover:text-white transition-colors cursor-pointer">LangGraph</span>
