@@ -11,7 +11,12 @@ app = FastAPI(title="Jarvis AI Assistant API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For local development
+    allow_origins=[
+        "http://localhost:5173",         # Vite dev server
+        "http://localhost:3000",         # Local preview
+        "https://mr-jarvis.tech",        # Production domain
+        "https://www.mr-jarvis.tech",    # Production www
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -26,111 +26,78 @@ class JarvisToolBridge(llm.ToolContext):
     def _get_random_filler(self) -> str:
         import random
         return random.choice([
-            "Hmm, let me check that...",
-            "Give me just a second...",
-            "Working on it...",
-            "Let me look that up...",
-            "Alright, one moment...",
-            "Let me see..."
+            "Let me check.",
+            "One moment.",
+            "Checking that now.",
+            "Let me pull that up."
         ])
+
+    async def _execute_tool(self, tool_name: str, kwargs: dict, use_filler: bool = False):
+        try:
+            if use_filler and hasattr(self, "session") and getattr(self, "session", None):
+                asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
+            
+            tool = self.lc_tools.get(tool_name)
+            if not tool:
+                return f"Tool {tool_name} not found."
+                
+            if getattr(tool, "coroutine", None):
+                return await tool.ainvoke(kwargs)
+            return await asyncio.to_thread(tool.invoke, kwargs)
+        except Exception as e:
+            return f"I couldn't perform this action right now due to an error: {str(e)}"
 
     @llm.function_tool(description="Fetch the latest top news headlines from BBC News.")
     async def get_latest_news(self) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools['get_latest_news']
-        if getattr(tool, "coroutine", None):
-            return await tool.ainvoke({})
-        return tool.invoke({})
+        # News requires an external API call, so it's a bit slower. Use filler.
+        return await self._execute_tool('get_latest_news', {}, use_filler=True)
 
     @llm.function_tool(description="Fetch recent email summaries from the Database.")
     async def get_recent_emails(self, top: int = 5) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('get_recent_emails')
-        if not tool: return "Tool not found."
-        return await tool.ainvoke({"top": top})
+        # DB lookup is fast, no filler needed.
+        return await self._execute_tool('get_recent_emails', {"top": top}, use_filler=False)
 
     @llm.function_tool(description="Draft an email.")
     async def create_email_draft(self, to: str, subject: str, body: str) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('create_email_draft')
-        if not tool: return "Tool not found."
-        return await tool.ainvoke({"to_recipients": [to], "subject": subject, "body": body})
+        return await self._execute_tool('create_email_draft', {"to_recipients": [to], "subject": subject, "body": body}, use_filler=True)
 
     @llm.function_tool(description="Send an existing email draft.")
     async def send_email_draft(self, draft_id: str) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('send_email_draft')
-        if not tool: return "Tool not found."
-        return await tool.ainvoke({"draft_id": draft_id})
+        return await self._execute_tool('send_email_draft', {"draft_id": draft_id}, use_filler=True)
 
     @llm.function_tool(description="Fetch today's calendar events.")
     async def get_calendar_events(self) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('get_calendar_events')
-        if not tool: return "Tool not found."
-        return await tool.ainvoke({})
+        # DB lookup is fast
+        return await self._execute_tool('get_calendar_events', {}, use_filler=False)
 
     @llm.function_tool(description="Schedule a new calendar event.")
     async def create_calendar_event(self, summary: str, start_time: str, end_time: str) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('create_calendar_event')
-        if not tool: return "Tool not found."
-        return await tool.ainvoke({"summary": summary, "start_time": start_time, "end_time": end_time})
+        return await self._execute_tool('create_calendar_event', {"summary": summary, "start_time": start_time, "end_time": end_time}, use_filler=True)
 
     @llm.function_tool(description="Fetch tasks from the database.")
     async def list_tasks(self) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('read_tasks')  # Fixed: name in todo_tools is read_tasks
-        if not tool: return "Error: I do not have access or cannot fetch your tasks."
-        return await tool.ainvoke({"top": 10})
+        # DB lookup is fast
+        return await self._execute_tool('read_tasks', {"top": 10}, use_filler=False)
 
     @llm.function_tool(description="Create a new task.")
     async def create_task(self, title: str, description: str = "") -> str:
-        tool = self.lc_tools.get('add_task')  # Fixed: name in todo_tools is add_task
-        if not tool: return "Tool not found."
-        return await tool.ainvoke({"title": title, "content": description})
+        return await self._execute_tool('add_task', {"title": title, "content": description}, use_filler=True)
 
     @llm.function_tool(description="Opens a folder or file on the local PC.")
     async def open_folder(self, path_or_name: str) -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('open_folder')
-        if not tool: return "Tool not found."
-        if getattr(tool, "coroutine", None):
-            return await tool.ainvoke({"path_or_name": path_or_name})
-        return await asyncio.to_thread(tool.invoke, {"path_or_name": path_or_name})
+        # Fast OS operation
+        return await self._execute_tool('open_folder', {"path_or_name": path_or_name}, use_filler=False)
 
     @llm.function_tool(description="Searches for files on the local PC matching the query.")
     async def search_files(self, query: str, directory: str = "") -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('search_files')
-        if not tool: return "Tool not found."
+        # OS walk can be slow
         kwargs = {"query": query}
-        if directory:
-            kwargs["directory"] = directory
-        
-        if getattr(tool, "coroutine", None):
-            return await tool.ainvoke(kwargs)
-        return await asyncio.to_thread(tool.invoke, kwargs)
+        if directory: kwargs["directory"] = directory
+        return await self._execute_tool('search_files', kwargs, use_filler=True)
 
     @llm.function_tool(description="Creates a new folder on the local PC.")
     async def create_folder(self, folder_name: str, path: str = "") -> str:
-        if hasattr(self, "session"):
-            asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
-        tool = self.lc_tools.get('create_folder')
-        if not tool: return "Tool not found."
         kwargs = {"folder_name": folder_name}
-        if path:
-            kwargs["path"] = path
-            
-        if getattr(tool, "coroutine", None):
-            return await tool.ainvoke(kwargs)
-        return await asyncio.to_thread(tool.invoke, kwargs)
+        if path: kwargs["path"] = path
+        return await self._execute_tool('create_folder', kwargs, use_filler=False)
+

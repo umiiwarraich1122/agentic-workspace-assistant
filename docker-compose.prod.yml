@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # -- FastAPI Backend API --------------------------------------
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mr-jarvis-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Persist tokens_db.json so Google auth tokens survive redeploys
+      - jarvis_tokens:/app/tokens_db.json
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # -- LiveKit Voice Agent Worker -------------------------------
+  backend-livekit:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mr-jarvis-livekit
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Share the same token store as the API so voice agent can read tokens
+      - jarvis_tokens:/app/tokens_db.json
+    command: python -m livekit_agent.agent start
+    restart: always
+    depends_on:
+      backend-api:
+        condition: service_healthy
+
+  # -- React Frontend (Nginx) -----------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://mr-jarvis.tech
+        VITE_LIVEKIT_URL: wss://mr-jarvis-jj6lb16p.livekit.cloud
+    container_name: mr-jarvis-frontend
+    ports:
+      - "3000:80"
+    restart: always
+    depends_on:
+      - backend-api
+
+# Named volume to persist tokens_db.json across redeploys
+volumes:
+  jarvis_tokens:

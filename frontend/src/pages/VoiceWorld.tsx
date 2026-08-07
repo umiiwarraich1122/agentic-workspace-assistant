@@ -8,7 +8,8 @@ import {
   useVoiceAssistant,
   useConnectionState,
   useLocalParticipant,
-  useTrackVolume
+  useTrackVolume,
+  useChat
 } from '@livekit/components-react';
 import { ConnectionState, Track } from 'livekit-client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +22,7 @@ function VoiceWorldUI({ onDisconnect }: { onDisconnect: () => void }) {
   const connectionState = useConnectionState();
   const { localParticipant, microphoneTrack } = useLocalParticipant();
   const [isMuted, setIsMuted] = useState(false);
+  const { chatMessages } = useChat();
 
   // Extract user volume for visual feedback
   const micTrackRef = React.useMemo(() => {
@@ -54,6 +56,9 @@ function VoiceWorldUI({ onDisconnect }: { onDisconnect: () => void }) {
     }
   }, [localParticipant, connectionState]);
 
+  // Get the most recent chat message (transcript)
+  const latestMessage = chatMessages.length > 0 ? chatMessages[chatMessages.length - 1] : null;
+
   return (
     <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center p-8 pointer-events-none">
       {/* Top Bar */}
@@ -74,7 +79,7 @@ function VoiceWorldUI({ onDisconnect }: { onDisconnect: () => void }) {
       </div>
 
       {/* Main Visualizer */}
-      <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
+      <div className="fixed inset-0 flex flex-col items-center justify-center z-40 pointer-events-none gap-8">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -142,6 +147,26 @@ function VoiceWorldUI({ onDisconnect }: { onDisconnect: () => void }) {
             )}
           </div>
         </motion.div>
+
+        {/* Real-time Transcript Display */}
+        <div className="h-24 flex items-center justify-center px-12 max-w-2xl text-center">
+          <AnimatePresence mode="wait">
+            {latestMessage && (
+              <motion.div
+                key={latestMessage.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-lg font-mono"
+              >
+                <span className={latestMessage.from?.identity === 'jarvis' ? 'text-cyan-400' : 'text-gray-300'}>
+                  {latestMessage.from?.identity === 'jarvis' ? 'Jarvis: ' : 'You: '}
+                </span>
+                <span className="text-white">{latestMessage.message}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* User Controls (Fixed at Bottom) */}
