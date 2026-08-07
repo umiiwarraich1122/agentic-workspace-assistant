@@ -6,6 +6,7 @@ from app.tools.calendar_tools import get_calendar_tools
 from app.tools.todo_tools import get_todo_tools
 from app.tools.web_tools import get_latest_news
 from app.tools.pc_tools import get_pc_tools
+from app.tools.reminder_tools import get_reminder_tools
 
 class JarvisToolBridge(llm.ToolContext):
     def __init__(self, access_token: str, user_id: str):
@@ -18,9 +19,10 @@ class JarvisToolBridge(llm.ToolContext):
         calendar_tools = get_calendar_tools(access_token, user_id)
         todo_tools = get_todo_tools(access_token, user_id)
         pc_tools = get_pc_tools()
+        reminder_tools = get_reminder_tools()
         
         # Map them by name
-        self.lc_tools = {t.name: t for t in mail_tools + calendar_tools + todo_tools + pc_tools}
+        self.lc_tools = {t.name: t for t in mail_tools + calendar_tools + todo_tools + pc_tools + reminder_tools}
         self.lc_tools['get_latest_news'] = get_latest_news
         
     def _get_random_filler(self) -> str:
@@ -101,3 +103,17 @@ class JarvisToolBridge(llm.ToolContext):
         if path: kwargs["path"] = path
         return await self._execute_tool('create_folder', kwargs, use_filler=False)
 
+    @llm.function_tool(description="Sets a reminder to notify the user later. Use this when the user asks you to remind them of something.")
+    async def set_reminder(self, message: str, delay_minutes: float) -> str:
+        # We need to manually construct a RunnableConfig-like object since tool_bridge executes it directly.
+        # But wait, our `set_reminder` tool in `reminder_tools.py` expects `config`.
+        # Let's pass the user_id manually or update the tool to accept user_id.
+        # Actually, in `tool_bridge.py`, we can inject the config.
+        kwargs = {"message": message, "delay_minutes": delay_minutes}
+        # In langchain tools, you can invoke with a second config parameter
+        # return await self.lc_tools['set_reminder'].ainvoke(kwargs, config={"configurable": {"user_id": self.user_id}})
+        try:
+            tool = self.lc_tools['set_reminder']
+            return await tool.ainvoke(kwargs, config={"configurable": {"user_id": self.user_id}})
+        except Exception as e:
+            return f"Error setting reminder: {e}"

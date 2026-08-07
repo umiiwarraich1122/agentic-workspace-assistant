@@ -30,14 +30,14 @@ async def list_emails(
     x_user_id: Optional[str] = Header(None),
     client: GoogleClient = Depends(get_google_client),
     top: int = 15,
-    q: str = None,
+    query: str = None,
 ):
     """
     Fetch emails LIVE from Gmail using metadata format (fast).
     No Supabase dependency — always fresh data.
     """
     try:
-        emails, next_page_token = await get_emails(client, top=top, query=q)
+        emails, next_page_token = await get_emails(client, top=top, query=query)
         return {"emails": emails, "nextPageToken": next_page_token}
     except Exception as e:
         logger.error(f"Error fetching emails: {e}")

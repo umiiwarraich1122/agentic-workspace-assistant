@@ -6,6 +6,7 @@ from app.tools.calendar_tools import get_calendar_tools
 from app.tools.todo_tools import get_todo_tools
 from app.tools.web_tools import get_web_tools
 from app.tools.pc_tools import get_pc_tools
+from app.tools.reminder_tools import get_reminder_tools
 from app.config import settings
 from langgraph.prebuilt import ToolNode
 import logging
@@ -21,7 +22,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         *get_calendar_tools(access_token, user_id),
         *get_todo_tools(access_token, user_id),
         *get_web_tools(),
-        *get_pc_tools()
+        *get_pc_tools(),
+        *get_reminder_tools()
     ]
     
     # Model selection logic:
@@ -103,7 +105,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
             "IMPORTANT: 1. You may respond in normal plain text for conversational replies and email drafts. "
             "2. ONLY when displaying a list of emails from the database, you MUST output a JSON object with an 'emails' array. "
             "3. When drafting an email, FIRST call the create_email_draft tool, then output the draft in plain text using this EXACT format: '📧 Email 1\\n\\nTo:\\n<recipient>\\n\\nSubject:\\n<subject>\\n\\nBody:\\n<body>', and ask the user 'Would you like me to send this email now?'. If they reply 'yes' or 'send it', use the send_email_draft tool. "
-            "4. Be extremely concise to save tokens.\n\n"
+            "4. Be extremely concise but ALWAYS provide a helpful response. Do not ever just reply with the word 'nothing' or an empty message.\n"
+            "5. When a tool returns data (like news, tasks, or calendar events), ALWAYS summarize that data in plain text for the user.\n\n"
             "ROUTING DIRECTIVES:\n"
             "You are the central router and dispatcher for the Jarvis AI Company agent floor. You must accurately map user intent based on these strict routing rules:\n"
             "1. WEB SEARCH & LIVE DATA INTENT (Target Node: BROWSER): If the user query asks for current events, live information, web searches, news, or real-time data (e.g., 'what is the top news today', 'search for...', 'weather in...', 'latest prices'), you MUST route the agent strictly to use web search tools (like get_latest_news) and act as the BROWSER node. Never process live web queries using internal knowledge (Neural Core).\n"

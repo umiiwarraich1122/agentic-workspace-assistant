@@ -110,6 +110,8 @@ export function CommandCenter() {
   const [attachedFilename, setAttachedFilename] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   
+  const [reminderPopup, setReminderPopup] = useState<{message: string; title: string} | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -124,6 +126,27 @@ export function CommandCenter() {
       loadThreads();
       // Run an initial background sync on mount
       handleSync();
+      
+      // Subscribe to SSE notifications for reminders
+      const evtSource = new EventSource(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notifications/stream?x_user_id=${user.userId}`);
+      evtSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'reminder') {
+            setReminderPopup({ message: data.message, title: data.title });
+            if ('speechSynthesis' in window) {
+              const utter = new SpeechSynthesisUtterance(`Reminder: ${data.message}`);
+              window.speechSynthesis.speak(utter);
+            }
+          }
+        } catch (e) {
+          console.error('SSE Error:', e);
+        }
+      };
+      
+      return () => {
+        evtSource.close();
+      };
     }
   }, [user]);
 
@@ -644,6 +667,30 @@ if (source === 'voice') {
           />
         </div>
       </div>
+
+      {/* Reminder Popup */}
+      <AnimatePresence>
+        {reminderPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -50 }}
+            className="absolute top-8 left-1/2 -translate-x-1/2 z-50 p-6 rounded-2xl bg-cyan-950/90 border-2 border-cyan-400 shadow-[0_0_50px_rgba(6,182,212,0.5)] backdrop-blur-xl flex flex-col items-center gap-4 max-w-md w-full"
+          >
+            <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center animate-pulse">
+              <MessageSquare className="w-6 h-6 text-cyan-400" />
+            </div>
+            <h3 className="text-xl font-mono text-cyan-300 font-bold uppercase tracking-widest">{reminderPopup.title}</h3>
+            <p className="text-center text-cyan-50 font-sans text-lg">{reminderPopup.message}</p>
+            <button
+              onClick={() => setReminderPopup(null)}
+              className="mt-4 px-8 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold tracking-widest uppercase transition-colors"
+            >
+              Acknowledge
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
