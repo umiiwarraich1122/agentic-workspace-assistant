@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434/v1"
     OLLAMA_MODEL: str = "llama3.2:latest"
     
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://mr-jarvis.tech"
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
