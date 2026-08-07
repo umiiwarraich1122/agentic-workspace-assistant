@@ -1,14 +1,26 @@
 mr-jarvis.tech, www.mr-jarvis.tech {
-    # Proxy API routes explicitly
-    reverse_proxy /api/* backend-api:8000
-    reverse_proxy /auth/* backend-api:8000
-    reverse_proxy /chat/* backend-api:8000
-    reverse_proxy /emails/* backend-api:8000
-    reverse_proxy /calendar/* backend-api:8000
-    reverse_proxy /todos/* backend-api:8000
-    reverse_proxy /health backend-api:8000
+    handle /api/* {
+        reverse_proxy backend-api:8000
+    }
+    handle /auth/* {
+        reverse_proxy backend-api:8000
+    }
+    handle /chat/* {
+        reverse_proxy backend-api:8000
+    }
+    handle /emails/* {
+        reverse_proxy backend-api:8000
+    }
+    handle /calendar/* {
+        reverse_proxy backend-api:8000
+    }
+    handle /todos/* {
+        reverse_proxy backend-api:8000
+    }
+    handle /health {
+        reverse_proxy backend-api:8000
+    }
 
-    # Serve the React Single Page Application (SPA)
     handle {
         root * /usr/share/caddy
         try_files {path} /index.html
