@@ -1,4 +1,8 @@
-mr-jarvis.tech, www.mr-jarvis.tech {
+www.mr-jarvis.tech {
+    redir https://mr-jarvis.tech{uri}
+}
+
+mr-jarvis.tech {
     handle /api* {
         reverse_proxy backend-api:8000
     }
