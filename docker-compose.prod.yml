@@ -14,6 +14,9 @@ services:
       - jarvis_tokens:/app/tokens_db.json
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -33,6 +36,9 @@ services:
       - jarvis_tokens:/app/tokens_db.json
     command: python -m livekit_agent.agent start
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       - backend-api
 
@@ -53,6 +59,9 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       - backend-api
 
