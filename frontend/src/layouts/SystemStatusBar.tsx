@@ -28,7 +28,7 @@ export function SystemStatusBar() {
       </div>
 
       {/* Center: Clock */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4 text-cyan-300 font-bold tracking-widest text-sm">
+      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-4 text-cyan-300 font-bold tracking-widest text-sm">
         <span>{time.toLocaleTimeString('en-US', { hour12: false })}</span>
         <span className="opacity-50 text-xs">{time.toLocaleDateString()}</span>
       </div>

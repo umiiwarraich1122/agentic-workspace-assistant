@@ -41,13 +41,13 @@ export function OSLayout() {
       
       <SystemStatusBar />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col-reverse md:flex-row flex-1 overflow-hidden">
         {/* Left Navigation Rail (Desktop) & Bottom Navigation Bar (Mobile) */}
         <motion.nav 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="fixed bottom-0 left-0 right-0 h-16 md:h-auto md:relative md:w-16 md:hover:w-48 group flex-shrink-0 border-t md:border-t-0 md:border-r border-cyan-900/30 bg-gray-950/90 backdrop-blur-3xl flex md:flex-col md:py-6 z-40 transition-[width] duration-300 ease-out md:overflow-hidden flex-row justify-around md:justify-start items-center md:items-stretch"
+          className="h-16 md:h-auto w-full md:w-16 md:relative md:hover:w-48 group flex-shrink-0 border-t md:border-t-0 md:border-r border-cyan-900/30 bg-gray-950/90 backdrop-blur-3xl flex md:flex-col md:py-6 z-40 transition-[width] duration-300 ease-out md:overflow-hidden flex-row justify-around md:justify-start items-center md:items-stretch"
         >
           <div className="flex-1 flex flex-row md:flex-col gap-1 md:gap-2 w-full md:px-2 md:mt-4 h-full items-center justify-around md:justify-start">
             {navItems.map((item, idx) => {
@@ -89,7 +89,7 @@ export function OSLayout() {
         </motion.nav>
 
         {/* Center Workspace (The Command Center) */}
-        <main className="flex-1 relative z-10 flex flex-col min-w-0 pb-16 md:pb-0">
+        <main className="flex-1 relative z-10 flex flex-col min-w-0 min-h-0">
           <Outlet />
         </main>
 
