@@ -160,12 +160,17 @@ async def chat(request: ChatRequest):
                             for tc in last_msg.tool_calls:
                                 payload = json.dumps({"type": "tool_start", "tool": tc.get("name", "")})
                                 yield f"data: {payload}\n\n"
-                        elif hasattr(last_msg, "content") and last_msg.content:
-                            final_message = last_msg.content
+                        elif hasattr(last_msg, "content"):
+                            final_message = last_msg.content if last_msg.content else "Action completed."
                             
-            if final_message:
+            if final_message is not None and final_message != "":
                 save_message_to_db(thread_id, request.user_id, "assistant", final_message)
                 payload = json.dumps({"type": "final", "content": final_message})
+                yield f"data: {payload}\n\n"
+            elif final_message == "":
+                fallback = "Directive executed."
+                save_message_to_db(thread_id, request.user_id, "assistant", fallback)
+                payload = json.dumps({"type": "final", "content": fallback})
                 yield f"data: {payload}\n\n"
                 
         except Exception as e:
