@@ -60,6 +60,10 @@ def open_folder(path_or_name: str) -> str:
         if not target_path:
             return f"Error: Could not find any folder or file named '{path_or_name}' on the PC."
             
+        import platform
+        if platform.system() != 'Windows':
+            return "Error: I am currently running on a remote cloud server (Linux/Docker). I cannot open folders on your local Windows PC unless a local bridge is installed."
+            
         # Use os.startfile which is available on Windows to open files/folders in default app
         os.startfile(target_path)
         return f"Successfully opened: {target_path} on your PC."
