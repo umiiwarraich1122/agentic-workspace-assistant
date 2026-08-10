@@ -38,9 +38,9 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     model = None
 
     if groq_key:
-        logger.info("Using Groq llama-3.3-70b-versatile")
+        logger.info("Using Groq llama-3.1-8b-instant")
         model = ChatOpenAI(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             temperature=0,
             api_key=groq_key,
             base_url="https://api.groq.com/openai/v1",
