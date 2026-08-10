@@ -93,20 +93,20 @@ class TokenManager:
         access_token = tokens.get("access_token")
         refresh_token = tokens.get("refresh_token")
         
-        # Parse acquired_at (might be missing in Supabase, fallback to 0 or use updated_at if needed)
+        # Parse acquired_at (might be missing in Supabase)
         acquired_at = tokens.get("acquired_at")
-        if acquired_at is None:
-            acquired_at = 0
-            
+        
         expires_in = tokens.get("expires_in")
         if expires_in is None:
             expires_in = 3600
         
         # Check if token is near expiration (within 60 seconds of expiry)
         is_expired = False
-        if acquired_at > 0:
-            if time.time() > (acquired_at + expires_in - 60):
-                is_expired = True
+        if acquired_at is None or acquired_at == 0:
+            # If we don't know when it was acquired, assume it's expired to force a refresh
+            is_expired = True
+        elif time.time() > (acquired_at + expires_in - 60):
+            is_expired = True
 
         if is_expired and refresh_token:
             logger.info(f"Google access token expired for user {user_id}. Refreshing...")
