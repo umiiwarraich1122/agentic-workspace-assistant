@@ -19,7 +19,7 @@ class JarvisToolBridge(llm.ToolContext):
         calendar_tools = get_calendar_tools(access_token, user_id)
         todo_tools = get_todo_tools(access_token, user_id)
         pc_tools = get_pc_tools()
-        reminder_tools = get_reminder_tools()
+        reminder_tools = get_reminder_tools(access_token)
         
         # Map them by name
         self.lc_tools = {t.name: t for t in mail_tools + calendar_tools + todo_tools + pc_tools + reminder_tools}
