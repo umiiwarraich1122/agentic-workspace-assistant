@@ -134,22 +134,7 @@ async def entrypoint(ctx: JobContext):
         turn_handling=turn_handling
     )
 
-    # Latency Measurement Event
-    @agent.on("metrics_collected")
-    def on_metrics_collected(metrics):
-        try:
-            stt_latency = metrics.stt_metrics.latency if metrics.stt_metrics else 0
-            llm_first_token = metrics.llm_metrics.ttft if metrics.llm_metrics else 0
-            tts_first_audio = metrics.tts_metrics.ttfb if metrics.tts_metrics else 0
-            total_perceived = stt_latency + llm_first_token + tts_first_audio
-            logger.info(f"--- LATENCY METRICS ---")
-            logger.info(f"STT latency: {stt_latency:.2f}s")
-            logger.info(f"LLM first token: {llm_first_token:.2f}s")
-            logger.info(f"TTS first audio: {tts_first_audio:.2f}s")
-            logger.info(f"Total perceived latency: {total_perceived:.2f}s")
-            logger.info(f"-----------------------")
-        except Exception as e:
-            pass
+    # Latency Measurement Event removed due to dependency conflict.
 
     try:
         await agent.start(ctx.room)
