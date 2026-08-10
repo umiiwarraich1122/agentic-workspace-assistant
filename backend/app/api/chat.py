@@ -106,8 +106,8 @@ async def upload_document(file: UploadFile = File(...), user_id: str = Form(...)
             content = file_bytes.decode("utf-8", errors="ignore")
             
         doc_id = str(uuid.uuid4())
-        from app.services.memory_store import store
-        store.save_document(doc_id, file.filename, content)
+        from app.rag.retriever import index_document
+        index_document(doc_id, file.filename, content)
         
         return {"document_id": doc_id, "filename": file.filename}
     except Exception as e:
@@ -139,7 +139,7 @@ async def chat(request: ChatRequest):
         doc = store.get_document(request.attached_document_id)
         if doc and thread_state["messages"] and isinstance(thread_state["messages"][-1], HumanMessage):
             original_content = thread_state["messages"][-1].content
-            injected_content = f"[Attached Document: {doc['filename']}]\n\n{doc['content']}\n\nUser Message:\n{original_content}"
+            injected_content = f"[System Notice: The user has attached a document named '{doc['filename']}'. To query its contents, you MUST use the document_search tool with document_id: {request.attached_document_id}]\n\nUser Message:\n{original_content}"
             thread_state["messages"][-1].content = injected_content
 
     async def event_generator():

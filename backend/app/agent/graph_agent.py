@@ -7,6 +7,10 @@ from app.tools.todo_tools import get_todo_tools
 from app.tools.web_tools import get_web_tools
 from app.tools.pc_tools import get_pc_tools
 from app.tools.reminder_tools import get_reminder_tools
+from app.tools.weather_tool import get_weather_tools
+from app.tools.map_tool import get_map_tools
+from app.tools.document_tool import get_document_tools
+from app.agent.evaluator import evaluate_tool_results
 from app.config import settings
 from langgraph.prebuilt import ToolNode
 import logging
@@ -23,7 +27,10 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         *get_todo_tools(access_token, user_id),
         *get_web_tools(),
         *get_pc_tools(),
-        *get_reminder_tools(access_token)
+        *get_reminder_tools(access_token),
+        *get_weather_tools(),
+        *get_map_tools(),
+        *get_document_tools()
     ]
     
     # Model selection logic:
@@ -39,6 +46,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
 
     if groq_key:
         logger.info("Using Groq llama-3.1-8b-instant")
+        from langchain_groq import ChatGroq
         model = ChatOpenAI(
             model="llama-3.1-8b-instant",
             temperature=0,
@@ -90,6 +98,14 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         if last_message.tool_calls:
             return "tools"
         return END
+        
+    def should_retry(state: AgentState):
+        messages = state['messages']
+        # If the evaluator added a HumanMessage, we need to route back to agent
+        from langchain_core.messages import HumanMessage
+        if isinstance(messages[-1], HumanMessage) and "[SYSTEM SELF-CORRECTION]" in str(messages[-1].content):
+            return "agent"
+        return "agent" # After evaluation, agent decides what to do next with the tool output
 
     def call_model(state: AgentState):
         messages = state['messages']
@@ -101,7 +117,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         
         time_context = f" The user's current device time is {local_time} in the {timezone} timezone. You MUST use this exact time as your reference point whenever resolving relative dates like 'tomorrow', 'next week', or 'at 5pm'." if local_time else ""
         system_prompt_text = (
-            "You are Mr. Jarvis, an AI Assistant. You have tools for Gmail, Calendar, Tasks, Web Search, and PC Control. You MUST use tools to execute requests. "
+            "You are Mr. Jarvis, an AI Assistant. You have tools for Gmail, Calendar, Tasks, Web Search, PC Control, Weather, Maps, and Document Search. You MUST use tools to execute requests. "
             "IMPORTANT: 1. You may respond in normal plain text for conversational replies and email drafts. "
             "2. ONLY when displaying a list of emails from the database, you MUST output a JSON object with an 'emails' array. "
             "3. When drafting an email, FIRST call the create_email_draft tool, then output the draft in plain text using this EXACT format: '📧 Email 1\\n\\nTo:\\n<recipient>\\n\\nSubject:\\n<subject>\\n\\nBody:\\n<body>', and ask the user 'Would you like me to send this email now?'. If they reply 'yes' or 'send it', use the send_email_draft tool. "
@@ -140,9 +156,11 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     workflow = StateGraph(AgentState)
     workflow.add_node("agent", call_model)
     workflow.add_node("tools", tool_node)
+    workflow.add_node("evaluator", evaluate_tool_results)
     
     workflow.set_entry_point("agent")
     workflow.add_conditional_edges("agent", should_continue, {"tools": "tools", END: END})
-    workflow.add_edge("tools", "agent")
+    workflow.add_edge("tools", "evaluator")
+    workflow.add_conditional_edges("evaluator", should_retry, {"agent": "agent"})
     
     return workflow.compile()

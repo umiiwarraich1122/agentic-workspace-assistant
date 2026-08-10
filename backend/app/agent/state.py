@@ -6,3 +6,4 @@ class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
     user_id: str
     access_token: str
+    retry_count: int

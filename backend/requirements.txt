@@ -19,3 +19,6 @@ livekit-plugins-cartesia
 livekit-api
 pytz
 livekit-plugins-silero
+faiss-cpu
+sentence-transformers
+langchain-huggingface
