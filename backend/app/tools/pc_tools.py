@@ -42,13 +42,30 @@ def _find_folder(folder_name: str) -> str:
                 del dirs[:]
     return None
 
+from app.api.bridge import bridge_manager
+from langchain_core.runnables.config import RunnableConfig
+import asyncio
+
+def _get_user_id(config: RunnableConfig) -> str:
+    return config.get("configurable", {}).get("user_id")
+
 @tool
-def open_folder(path_or_name: str) -> str:
+async def open_folder(path_or_name: str, config: RunnableConfig) -> str:
     """
     Opens a folder or file on the user's local PC using Windows Explorer.
     Provide the exact absolute path or the name of a common folder (e.g., 'Internship', 'Documents').
     """
-    logger.info(f"Attempting to open PC folder/file: {path_or_name}")
+    user_id = _get_user_id(config)
+    
+    if user_id and bridge_manager.has_connection(user_id):
+        logger.info(f"Routing open_folder to PC Bridge for {user_id}")
+        response = await bridge_manager.send_command(user_id, "open_folder", {"path_or_name": path_or_name})
+        if response.get("status") == "success":
+            return response.get("message", f"Successfully opened {path_or_name} via Bridge.")
+        else:
+            return response.get("message", f"Failed to open {path_or_name} via Bridge.")
+            
+    logger.info(f"Attempting to open PC folder/file locally: {path_or_name}")
     try:
         # First, check if it's an exact path that exists
         if os.path.exists(path_or_name):
@@ -72,18 +89,35 @@ def open_folder(path_or_name: str) -> str:
         return f"Failed to open '{path_or_name}': {str(e)}"
 
 @tool
-def search_files(query: str, directory: str = None) -> str:
+async def search_files(query: str, directory: str = None, config: RunnableConfig = None) -> str:
     """
     Searches for files on the user's PC matching the query name. 
     If directory is not provided, it searches common user directories (Desktop, Documents, etc.).
     Returns a list of matching file paths.
     """
+    user_id = _get_user_id(config) if config else None
+    
+    if user_id and bridge_manager.has_connection(user_id):
+        logger.info(f"Routing search_files to PC Bridge for {user_id}")
+        payload = {"query": query}
+        if directory:
+            payload["directory"] = directory
+        response = await bridge_manager.send_command(user_id, "search_files", payload, timeout=30.0)
+        if response.get("status") == "success":
+            return response.get("message", "Search completed via Bridge.")
+        else:
+            return response.get("message", "Search failed via Bridge.")
+
     logger.info(f"Searching for files matching '{query}' in {directory or 'common directories'}")
     
     dirs_to_search = [directory] if directory and os.path.exists(directory) else COMMON_SEARCH_DIRS
     results = []
     
     try:
+        import platform
+        if platform.system() != 'Windows':
+            return "Error: I am currently running on a remote cloud server. I cannot search files on your local Windows PC without a bridge."
+            
         query_lower = query.lower()
         for search_dir in dirs_to_search:
             if not os.path.exists(search_dir):
@@ -117,12 +151,29 @@ def search_files(query: str, directory: str = None) -> str:
         return f"An error occurred while searching: {str(e)}"
 
 @tool
-def create_folder(folder_name: str, path: str = None) -> str:
+async def create_folder(folder_name: str, path: str = None, config: RunnableConfig = None) -> str:
     """
     Creates a new folder on the PC.
     If path is not specified, it will create it on the Desktop.
     """
+    user_id = _get_user_id(config) if config else None
+    
+    if user_id and bridge_manager.has_connection(user_id):
+        logger.info(f"Routing create_folder to PC Bridge for {user_id}")
+        payload = {"folder_name": folder_name}
+        if path:
+            payload["path"] = path
+        response = await bridge_manager.send_command(user_id, "create_folder", payload)
+        if response.get("status") == "success":
+            return response.get("message", "Folder created via Bridge.")
+        else:
+            return response.get("message", "Failed to create folder via Bridge.")
+
     try:
+        import platform
+        if platform.system() != 'Windows':
+            return "Error: I am currently running on a remote cloud server. I cannot create folders on your local Windows PC without a bridge."
+            
         base_path = path if path and os.path.exists(path) else os.path.join(USER_HOME, "Desktop")
         full_path = os.path.join(base_path, folder_name)
         
