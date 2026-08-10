@@ -90,12 +90,20 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               };
             }
 
-            // Optional: Play a sound
+            // 3. Play alarm sound and speak the message
             try {
-              const audio = new Audio('/notification.mp3');
-              audio.play().catch(e => console.warn('Could not play notification sound:', e));
+              const audio = new Audio('/alarm.mp3');
+              audio.play().catch(e => console.warn('Could not play alarm sound:', e));
+              
+              if ('speechSynthesis' in window) {
+                // Add a small delay so the alarm rings first before speaking
+                setTimeout(() => {
+                  const utter = new SpeechSynthesisUtterance(`Reminder: ${data.message}`);
+                  window.speechSynthesis.speak(utter);
+                }, 1500);
+              }
             } catch (e) {
-              console.warn(e);
+              console.warn("Audio/Speech error:", e);
             }
           }
         } catch (error) {
