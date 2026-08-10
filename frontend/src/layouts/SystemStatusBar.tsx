@@ -42,19 +42,6 @@ export function SystemStatusBar() {
 
       {/* Right: Connectivity & User */}
       <div className="flex items-center gap-6">
-        <div className="hidden md:flex items-center gap-4 opacity-70">
-          <div className="flex items-center gap-1.5">
-            <Server className="w-3 h-3" />
-            <span>GOOGLE_API</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]" />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Wifi className="w-3 h-3" />
-            <span>LANGGRAPH</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]" />
-          </div>
-        </div>
-        
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 px-3 py-1 bg-cyan-950/40 border border-cyan-900/50 rounded flex-shrink-0">
             <User className="w-3 h-3 text-cyan-400" />

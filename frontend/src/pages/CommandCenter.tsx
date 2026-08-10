@@ -8,7 +8,7 @@ import { CyberInput } from '../components/ui/CyberInput';
 import { AICore } from '../components/os/AICore';
 import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
-import { Plus, MessageSquare, RefreshCw, Trash2, LogOut, Globe } from 'lucide-react';
+import { Plus, MessageSquare, RefreshCw, Trash2, LogOut, Globe, Mail, Calendar, CheckSquare } from 'lucide-react';
 import { VoiceInterface } from '../components/voice/VoiceInterface';
 
 const SUGGESTIONS = [
@@ -453,8 +453,32 @@ if (source === 'voice') {
           )}
         </div>
         
-        <div className="p-4 border-t border-cyan-900/30">
-           <button 
+        <div className="p-4 border-t border-cyan-900/30 space-y-2">
+          <button 
+            onClick={() => navigate('/chat/emails')}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-cyan-900/40 transition-colors text-sm font-mono text-cyan-100"
+          >
+            <Mail className="w-4 h-4 text-cyan-400" />
+            Emails
+          </button>
+          <button 
+            onClick={() => navigate('/chat/calendar')}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-cyan-900/40 transition-colors text-sm font-mono text-cyan-100"
+          >
+            <Calendar className="w-4 h-4 text-cyan-400" />
+            Calendar
+          </button>
+          <button 
+            onClick={() => navigate('/chat/tasks')}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-cyan-900/40 transition-colors text-sm font-mono text-cyan-100"
+          >
+            <CheckSquare className="w-4 h-4 text-cyan-400" />
+            Tasks
+          </button>
+          
+          <div className="h-px bg-cyan-900/30 my-2"></div>
+          
+          <button 
             onClick={useAuth().logout}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-900/50 transition-colors text-xs font-mono text-red-400"
           >
