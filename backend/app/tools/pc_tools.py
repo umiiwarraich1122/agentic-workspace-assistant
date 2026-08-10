@@ -88,8 +88,10 @@ async def open_folder(path_or_name: str, config: RunnableConfig) -> str:
         logger.error(f"Error opening folder {path_or_name}: {e}")
         return f"Failed to open '{path_or_name}': {str(e)}"
 
+from typing import Optional
+
 @tool
-async def search_files(query: str, directory: str = None, config: RunnableConfig = None) -> str:
+async def search_files(query: str, directory: Optional[str] = "", config: RunnableConfig = None) -> str:
     """
     Searches for files on the user's PC matching the query name. 
     If directory is not provided, it searches common user directories (Desktop, Documents, etc.).
@@ -151,7 +153,7 @@ async def search_files(query: str, directory: str = None, config: RunnableConfig
         return f"An error occurred while searching: {str(e)}"
 
 @tool
-async def create_folder(folder_name: str, path: str = None, config: RunnableConfig = None) -> str:
+async def create_folder(folder_name: str, path: Optional[str] = "", config: RunnableConfig = None) -> str:
     """
     Creates a new folder on the PC.
     If path is not specified, it will create it on the Desktop.
