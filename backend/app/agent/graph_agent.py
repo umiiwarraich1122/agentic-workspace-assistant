@@ -23,7 +23,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         *get_todo_tools(access_token, user_id),
         *get_web_tools(),
         *get_pc_tools(),
-        *get_reminder_tools()
+        *get_reminder_tools(access_token)
     ]
     
     # Model selection logic:

@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { api } from '../services/api';
 
 interface Reminder {
   title: string;
   message: string;
+  taskId?: string;
 }
 
 interface NotificationContextType {
@@ -64,18 +66,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'reminder') {
-            const reminder = { message: data.message, title: data.title };
+            const reminder = { message: data.message, title: data.title, taskId: data.taskId };
             
             // 1. Set the in-app popup state
             setReminderPopup(reminder);
 
             // 2. Trigger native OS push notification
             if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification(data.title, {
+              const notification = new Notification(data.title, {
                 body: data.message,
                 icon: '/vite.svg', // Provide a path to a Jarvis icon if available
                 requireInteraction: true // Keep it on screen until the user dismisses it
               });
+              
+              notification.onclick = async () => {
+                if (data.taskId) {
+                  try {
+                    await api.delete(`/todos/${data.taskId}`);
+                  } catch (e) {
+                    console.error("Error deleting task via native notification click:", e);
+                  }
+                }
+              };
             }
 
             // Optional: Play a sound
@@ -107,7 +119,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [user]);
 
-  const clearReminder = () => setReminderPopup(null);
+  const clearReminder = async () => {
+    if (reminderPopup?.taskId) {
+      try {
+        await api.delete(`/todos/${reminderPopup.taskId}`);
+      } catch (error) {
+        console.error('Failed to delete task after acknowledge:', error);
+      }
+    }
+    setReminderPopup(null);
+  };
 
   return (
     <NotificationContext.Provider value={{ reminderPopup, clearReminder, requestNotificationPermission }}>
