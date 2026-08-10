@@ -33,6 +33,17 @@ export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, a
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      // Reset height to calculate new height
+      textareaRef.current.style.height = 'auto';
+      // Set to scrollHeight (bounded by max-h-32 due to CSS)
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
   return (
     <div className="relative group flex flex-col gap-2">
       {/* Attachment Indicator */}
@@ -59,13 +70,14 @@ export function CyberInput({ value, onChange, onSend, isLoading, onFileUpload, a
         />
         
         <textarea
+          ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="What would you like me to do today?"
           className={cn(
             "flex-1 bg-transparent border-none resize-none focus:outline-none focus:ring-0",
-            "text-gray-100 placeholder-gray-600 py-3 pl-3 max-h-32 min-h-[48px] overflow-y-auto",
+            "text-gray-100 placeholder-gray-600 py-3 pl-3 max-h-48 min-h-[48px] overflow-y-auto",
             "font-mono text-sm sm:text-base tracking-tight"
           )}
           rows={1}
