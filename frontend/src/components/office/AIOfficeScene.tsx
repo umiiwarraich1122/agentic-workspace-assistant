@@ -106,7 +106,7 @@ export function AIOfficeScene({ isThinking }: { isThinking: boolean }) {
             transition={{ repeat: Infinity, duration: 1.2 }}
             className="w-2 h-2 rounded-full bg-cyan-400"
           />
-          <span className="text-[10px] font-mono font-bold text-cyan-400 tracking-[0.25em] uppercase">Jarvis AI Company — Floor 1</span>
+          <span className="text-[10px] font-mono font-bold text-cyan-400 tracking-[0.25em] uppercase">Mr-Jarvis</span>
         </div>
         <div className="flex gap-2 items-center">
           {isThinking && (
