@@ -1,17 +1,19 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, MessageSquare, Mail, Calendar as CalendarIcon, 
   CheckSquare, Settings, LogOut, BarChart
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { GlobalEnvironment } from '../components/os/GlobalEnvironment';
 import { SystemStatusBar } from './SystemStatusBar';
 import { TodayCalendarWidget, UnreadEmailsWidget, PendingTasksWidget } from '../components/widgets/DashboardWidgets';
 
 export function OSLayout() {
   const { logout, user } = useAuth();
+  const { reminderPopup, clearReminder } = useNotifications();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -110,6 +112,30 @@ export function OSLayout() {
           <PendingTasksWidget />
         </motion.aside>
       </div>
+
+      {/* Global Reminder Popup */}
+      <AnimatePresence>
+        {reminderPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -50 }}
+            className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] p-6 rounded-2xl bg-cyan-950/90 border-2 border-cyan-400 shadow-[0_0_50px_rgba(6,182,212,0.5)] backdrop-blur-xl flex flex-col items-center gap-4 max-w-md w-full"
+          >
+            <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center animate-pulse">
+              <MessageSquare className="w-6 h-6 text-cyan-400" />
+            </div>
+            <h3 className="text-xl font-mono text-cyan-300 font-bold uppercase tracking-widest">{reminderPopup.title}</h3>
+            <p className="text-center text-cyan-50 font-sans text-lg">{reminderPopup.message}</p>
+            <button
+              onClick={clearReminder}
+              className="mt-4 px-8 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold tracking-widest uppercase transition-colors"
+            >
+              Acknowledge
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

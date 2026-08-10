@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useSearchParams, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { LandingOS } from './pages/LandingOS';
 import { CommandCenter } from './pages/CommandCenter';
 import { EmailModule } from './pages/EmailModule';
@@ -92,32 +93,34 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingOS />} />
-          <Route path="/login/success" element={<AuthCallbackHandler />} />
-          
-          <Route path="/chat" element={
-            <PrivateRoute>
-              <OSLayout />
-            </PrivateRoute>
-          }>
-            <Route index element={<CommandCenter />} />
-            <Route path="emails" element={<EmailModule />} />
-            <Route path="calendar" element={<CalendarModule />} />
-            <Route path="tasks" element={<TasksModule />} />
-          </Route>
+      <NotificationProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingOS />} />
+            <Route path="/login/success" element={<AuthCallbackHandler />} />
+            
+            <Route path="/chat" element={
+              <PrivateRoute>
+                <OSLayout />
+              </PrivateRoute>
+            }>
+              <Route index element={<CommandCenter />} />
+              <Route path="emails" element={<EmailModule />} />
+              <Route path="calendar" element={<CalendarModule />} />
+              <Route path="tasks" element={<TasksModule />} />
+            </Route>
 
-          <Route path="/chat/voice-world" element={
-            <PrivateRoute>
-              <VoiceWorld />
-            </PrivateRoute>
-          } />
-          
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+            <Route path="/chat/voice-world" element={
+              <PrivateRoute>
+                <VoiceWorld />
+              </PrivateRoute>
+            } />
+            
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
