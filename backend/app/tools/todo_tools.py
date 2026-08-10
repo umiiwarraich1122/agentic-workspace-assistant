@@ -8,15 +8,13 @@ def get_todo_tools(access_token: str, user_id: str):
     
     @tool
     async def read_tasks(top: int = 10) -> str:
-        """Fetch the user's tasks from the Database to save tokens."""
-        from app.database.supabase import get_supabase
-        import json
+        """Fetch the user's tasks from Google Tasks."""
         try:
-            supabase = get_supabase()
-            response = supabase.table("tasks").select("*").eq("user_id", user_id).limit(top).execute()
-            tasks = response.data
+            from app.google_api.todo import get_todos
+            import json
+            tasks = await get_todos(client, top=top)
             if not tasks:
-                return "Error: I do not have access or cannot fetch your tasks."
+                return "No tasks found in Google Tasks."
             formatted = []
             for t in tasks:
                 formatted.append({
@@ -27,7 +25,7 @@ def get_todo_tools(access_token: str, user_id: str):
                 })
             return json.dumps(formatted)
         except Exception as e:
-            return f"Error reading tasks from database: {str(e)}"
+            return f"Error reading tasks from Google API: {str(e)}"
 
     @tool
     async def add_task(title: str, content: Optional[str] = None) -> str:

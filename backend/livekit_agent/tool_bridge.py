@@ -59,8 +59,8 @@ class JarvisToolBridge(llm.ToolContext):
 
     @llm.function_tool(description="Fetch recent email summaries from the Database.")
     async def get_recent_emails(self, top: int = 5) -> str:
-        # DB lookup is fast, no filler needed.
-        return await self._execute_tool('get_recent_emails', {"top": top}, use_filler=False)
+        # Fetches live from Gmail now. Use filler.
+        return await self._execute_tool('get_recent_emails', {"top": top}, use_filler=True)
 
     @llm.function_tool(description="Draft an email.")
     async def create_email_draft(self, to: str, subject: str, body: str) -> str:
@@ -72,8 +72,8 @@ class JarvisToolBridge(llm.ToolContext):
 
     @llm.function_tool(description="Fetch today's calendar events.")
     async def get_calendar_events(self) -> str:
-        # DB lookup is fast
-        return await self._execute_tool('get_calendar_events', {}, use_filler=False)
+        # Fetches live from Google Calendar now. Use filler.
+        return await self._execute_tool('read_calendar', {}, use_filler=True)
 
     @llm.function_tool(description="Schedule a new calendar event.")
     async def create_calendar_event(self, summary: str, start_time: str, end_time: str) -> str:
@@ -81,8 +81,8 @@ class JarvisToolBridge(llm.ToolContext):
 
     @llm.function_tool(description="Fetch tasks from the database.")
     async def list_tasks(self) -> str:
-        # DB lookup is fast
-        return await self._execute_tool('read_tasks', {"top": 10}, use_filler=False)
+        # Fetches live from Google Tasks now. Use filler.
+        return await self._execute_tool('read_tasks', {"top": 10}, use_filler=True)
 
     @llm.function_tool(description="Create a new task.")
     async def create_task(self, title: str, description: str = "") -> str:

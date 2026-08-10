@@ -9,15 +9,13 @@ def get_calendar_tools(access_token: str, user_id: str):
     
     @tool
     async def read_calendar(top: int = 10) -> str:
-        """Fetch the user's upcoming events from the Database to save tokens."""
-        from app.database.supabase import get_supabase
-        import json
+        """Fetch the user's upcoming events from Google Calendar."""
         try:
-            supabase = get_supabase()
-            response = supabase.table("calendar").select("*").eq("user_id", user_id).limit(top).execute()
-            events = response.data
+            from app.google_api.calendar import get_events
+            import json
+            events = await get_events(client, top=top)
             if not events:
-                return "No upcoming events found in the database. You might need to sync first."
+                return "No upcoming events found in the calendar."
             formatted = []
             for ev in events:
                 formatted.append({
@@ -28,7 +26,7 @@ def get_calendar_tools(access_token: str, user_id: str):
                 })
             return json.dumps(formatted)
         except Exception as e:
-            return f"Error reading calendar from database: {str(e)}"
+            return f"Error reading calendar from Google API: {str(e)}"
 
     @tool
     async def schedule_event(subject: str, start_time: str, end_time: str, content: Optional[str] = None, attendees: Optional[List[str]] = None) -> str:
