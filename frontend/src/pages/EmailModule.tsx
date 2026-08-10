@@ -84,6 +84,20 @@ export function EmailModule() {
     }
   };
 
+  const parseSender = (senderStr: string) => {
+    if (!senderStr) return { name: 'Unknown Sender', email: '' };
+    const match = senderStr.match(/(.*?)\s*<(.+?)>/);
+    if (match) {
+      const name = match[1].replace(/"/g, '').trim();
+      const email = match[2].trim();
+      return { 
+        name: name || email, 
+        email: email 
+      };
+    }
+    return { name: senderStr.trim(), email: senderStr.trim() };
+  };
+
   return (
     <div className="h-full flex flex-col p-6 overflow-hidden relative z-10 w-full">
       <div className="flex items-center gap-4 mb-8">
@@ -123,25 +137,35 @@ export function EmailModule() {
           ) : emails.length === 0 ? (
             <div className="text-center text-gray-500 font-mono mt-10">No emails found in Gmail.</div>
           ) : (
-            emails.map((email, idx) => (
-              <motion.button
-                key={idx}
-                onClick={() => { setSelectedEmail(email); setAiDraft(''); setDraftSaved(false); }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`text-left p-4 rounded-xl border backdrop-blur-md transition-all ${
-                  selectedEmail === email 
-                    ? 'bg-blue-900/40 border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.2)]' 
-                    : 'bg-gray-900/40 border-white/10 hover:border-blue-500/30 hover:bg-blue-950/20'
-                }`}
-              >
-                <div className="text-sm font-bold text-cyan-300 truncate mb-1">
-                  {email.sender || email.from || 'Unknown Sender'}
-                </div>
-                <div className="text-xs text-blue-200 truncate font-mono mb-2">{email.subject || 'No Subject'}</div>
-                <div className="text-xs text-gray-400 truncate">{email.bodyPreview || email.summary || 'No preview available...'}</div>
-              </motion.button>
-            ))
+            emails.map((email, idx) => {
+              const { name, email: emailAddress } = parseSender(email.sender || email.from);
+              return (
+                <motion.button
+                  key={idx}
+                  onClick={() => { setSelectedEmail(email); setAiDraft(''); setDraftSaved(false); }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex flex-col text-left p-4 rounded-xl border backdrop-blur-md transition-all ${
+                    selectedEmail === email 
+                      ? 'bg-blue-900/40 border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.2)]' 
+                      : 'bg-gray-900/40 border-white/10 hover:border-blue-500/30 hover:bg-blue-950/20'
+                  }`}
+                >
+                  <div className="text-sm font-bold text-cyan-300 truncate mb-1">
+                    {name}
+                  </div>
+                  {emailAddress && name !== emailAddress && (
+                    <div className="text-[10px] text-cyan-500/70 truncate mb-2 font-mono">
+                      {emailAddress}
+                    </div>
+                  )}
+                  <div className="text-xs text-blue-200 truncate font-mono mb-1.5">{email.subject || 'No Subject'}</div>
+                  <div className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                    {email.bodyPreview || email.summary || 'No preview available...'}
+                  </div>
+                </motion.button>
+              );
+            })
           )}
         </div>
 
