@@ -155,8 +155,8 @@ export function EmailModule() {
                     {name}
                   </div>
                   {emailAddress && name !== emailAddress && (
-                    <div className="text-[10px] text-cyan-500/70 truncate mb-2 font-mono">
-                      {emailAddress}
+                    <div className="text-xs text-cyan-500/80 truncate mb-2 font-mono">
+                      Email: {emailAddress}
                     </div>
                   )}
                   <div className="text-xs text-blue-200 truncate font-mono mb-1.5">{email.subject || 'No Subject'}</div>
