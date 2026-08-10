@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, Circle, CheckCircle2, RefreshCw, Trash2 } from 'lucide-react';
+import { CheckSquare, Circle, CheckCircle2, RefreshCw, Trash2, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleService, api } from '../services/api';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export function TasksModule() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,14 @@ export function TasksModule() {
 
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-purple-500/20 rounded-xl border border-purple-500/30">
+          <button 
+            onClick={() => navigate('/chat')}
+            className="p-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-colors cursor-pointer flex-shrink-0"
+            title="Back to Chat"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <div className="p-3 bg-purple-500/20 rounded-xl border border-purple-500/30 flex-shrink-0">
             <CheckSquare className="w-6 h-6 text-purple-400" />
           </div>
           <div>

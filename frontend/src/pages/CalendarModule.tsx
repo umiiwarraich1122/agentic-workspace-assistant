@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, Clock, MapPin, RefreshCw, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, RefreshCw, Trash2, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleService, api } from '../services/api';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export function CalendarModule() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,14 @@ export function CalendarModule() {
 
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-cyan-500/20 rounded-xl border border-cyan-500/30">
+          <button 
+            onClick={() => navigate('/chat')}
+            className="p-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-colors cursor-pointer flex-shrink-0"
+            title="Back to Chat"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <div className="p-3 bg-cyan-500/20 rounded-xl border border-cyan-500/30 flex-shrink-0">
             <CalendarIcon className="w-6 h-6 text-cyan-400" />
           </div>
           <div>

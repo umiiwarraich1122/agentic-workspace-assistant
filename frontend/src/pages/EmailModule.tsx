@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Sparkles, Send, Check, RefreshCw, X, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleService, chatService } from '../services/api';
 
 export function EmailModule() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,14 @@ export function EmailModule() {
   return (
     <div className="h-full flex flex-col p-6 overflow-hidden relative z-10 w-full">
       <div className="flex items-center gap-4 mb-8">
-        <div className="p-3 bg-blue-500/20 rounded-xl border border-blue-500/30">
+        <button 
+          onClick={() => navigate('/chat')}
+          className="p-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-colors cursor-pointer flex-shrink-0"
+          title="Back to Chat"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <div className="p-3 bg-blue-500/20 rounded-xl border border-blue-500/30 flex-shrink-0">
           <Mail className="w-6 h-6 text-blue-400" />
         </div>
         <div>
