@@ -47,11 +47,10 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     if groq_key:
         logger.info("Using Groq llama-3.1-8b-instant")
         from langchain_groq import ChatGroq
-        model = ChatOpenAI(
+        model = ChatGroq(
             model="llama-3.1-8b-instant",
             temperature=0,
             api_key=groq_key,
-            base_url="https://api.groq.com/openai/v1",
             timeout=30.0,
             max_retries=2
         )
