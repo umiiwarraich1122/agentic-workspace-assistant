@@ -44,8 +44,14 @@ async def set_reminder(message: str, delay_minutes: float, config: RunnableConfi
             except Exception as e:
                 logger.error(f"Reminder task error: {e}")
 
-        # Fire and forget
-        asyncio.create_task(reminder_task())
+        # Keep a strong reference to the background task to prevent garbage collection!
+        global _background_tasks
+        if '_background_tasks' not in globals():
+            _background_tasks = set()
+            
+        task = asyncio.create_task(reminder_task())
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         
         return f"Reminder successfully scheduled for {delay_minutes} minutes from now."
     except Exception as e:
