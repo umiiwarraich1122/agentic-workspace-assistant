@@ -103,6 +103,11 @@ class JarvisToolBridge(llm.ToolContext):
         if path: kwargs["path"] = path
         return await self._execute_tool('create_folder', kwargs, use_filler=False)
 
+    @llm.function_tool(description="Copies a file from the source_path to the destination_path on the local PC.")
+    async def copy_file(self, source_path: str, destination_path: str) -> str:
+        kwargs = {"source_path": source_path, "destination_path": destination_path}
+        return await self._execute_tool('copy_file', kwargs, use_filler=True)
+
     @llm.function_tool(description="Sets a reminder to notify the user later. Use this when the user asks you to remind them of something.")
     async def set_reminder(self, reminder_text: str, delay: float) -> str:
         # We map the hallucination-prone arguments (reminder_text, delay) to the actual tool (message, delay_minutes).

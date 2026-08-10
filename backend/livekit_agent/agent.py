@@ -106,7 +106,7 @@ async def entrypoint(ctx: JobContext):
 
     # 2. Streaming LLM Setup
     llm_impl = openai.LLM(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         base_url="https://api.groq.com/openai/v1",
         api_key=os.environ.get("GROQ_API_KEY") or "dummy"
     )
