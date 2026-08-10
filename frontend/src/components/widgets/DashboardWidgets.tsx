@@ -72,6 +72,20 @@ export function UnreadEmailsWidget() {
     }
   }, [user]);
 
+  const parseSender = (senderStr: string) => {
+    if (!senderStr) return { name: 'Unknown Sender', email: '' };
+    const match = senderStr.match(/(.*?)\s*<(.+?)>/);
+    if (match) {
+      const name = match[1].replace(/"/g, '').trim();
+      const email = match[2].trim();
+      return { 
+        name: name || email, 
+        email: email 
+      };
+    }
+    return { name: senderStr.trim(), email: senderStr.trim() };
+  };
+
   return (
     <div className="p-5 bg-gray-950/80 border border-blue-900/30 rounded-2xl backdrop-blur-md relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500 shadow-lg">
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-700" />
@@ -92,14 +106,25 @@ export function UnreadEmailsWidget() {
             <div className="h-12 bg-blue-950/40 rounded-lg"></div>
           </div>
         ) : emails.length > 0 ? (
-          emails.map((em, i) => (
-             <div key={i} className="flex gap-3 p-2.5 bg-blue-950/20 rounded-lg border border-blue-900/40">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-cyan-300 truncate">{em.sender || em.from || 'Unknown Sender'}</div>
-                <div className="text-xs text-blue-400/80 truncate font-mono mt-0.5">{em.subject || 'No Subject'}</div>
+          emails.map((em, i) => {
+            const { name, email: emailAddress } = parseSender(em.sender || em.from);
+            return (
+              <div key={i} className="flex gap-3 p-2.5 bg-blue-950/20 rounded-lg border border-blue-900/40">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-cyan-300 truncate mb-1">{name}</div>
+                  {emailAddress && name !== emailAddress && (
+                    <div className="text-xs text-cyan-500/80 truncate mb-1.5 font-mono">
+                      Email: {emailAddress}
+                    </div>
+                  )}
+                  <div className="text-xs text-blue-400/80 truncate font-mono mt-0.5 mb-1">{em.subject || 'No Subject'}</div>
+                  <div className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                    {em.bodyPreview || em.summary || 'No preview available...'}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="text-xs font-mono text-gray-500 p-3 text-center">No emails found in Gmail.</div>
         )}
