@@ -147,7 +147,10 @@ async def chat(request: ChatRequest):
             agent = build_graph(access_token, request.user_id, request.local_time, request.timezone)
             final_message = ""
             
-            async for chunk in agent.astream(thread_state):
+            async for chunk in agent.astream(
+                thread_state, 
+                config={"configurable": {"user_id": request.user_id}}
+            ):
                 for node_name, node_state in chunk.items():
                     messages = node_state.get("messages", [])
                     if not messages:
