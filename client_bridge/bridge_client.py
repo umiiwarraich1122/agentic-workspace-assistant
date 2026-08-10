@@ -96,6 +96,23 @@ def handle_create_folder(payload: dict) -> dict:
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+def handle_copy_file(payload: dict) -> dict:
+    source_path = payload.get("source_path")
+    destination_path = payload.get("destination_path")
+    
+    if not source_path or not destination_path:
+        return {"status": "error", "message": "Source or destination path missing."}
+        
+    try:
+        import shutil
+        if not os.path.exists(source_path):
+            return {"status": "error", "message": f"Source file does not exist: {source_path}"}
+            
+        shutil.copy2(source_path, destination_path)
+        return {"status": "success", "message": f"Successfully copied to {destination_path}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 async def connect_bridge():
     user_id = input("Enter your Jarvis User ID: ").strip()
     if not user_id:
@@ -128,6 +145,8 @@ async def connect_bridge():
                         res = handle_search_files(payload)
                     elif action == "create_folder":
                         res = handle_create_folder(payload)
+                    elif action == "copy_file":
+                        res = handle_copy_file(payload)
                     else:
                         res = {"status": "error", "message": f"Unknown action: {action}"}
                         

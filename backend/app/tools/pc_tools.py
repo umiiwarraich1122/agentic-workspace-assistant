@@ -186,6 +186,38 @@ async def create_folder(folder_name: str, path: str = None, config: RunnableConf
         logger.error(f"Error creating folder {folder_name}: {e}")
         return f"Failed to create folder '{folder_name}': {str(e)}"
 
+@tool
+async def copy_file(source_path: str, destination_path: str, config: RunnableConfig = None) -> str:
+    """
+    Copies a file from the source_path to the destination_path on the user's PC.
+    Both paths should ideally be absolute paths.
+    """
+    user_id = _get_user_id(config) if config else None
+    
+    if user_id and bridge_manager.has_connection(user_id):
+        logger.info(f"Routing copy_file to PC Bridge for {user_id}")
+        payload = {"source_path": source_path, "destination_path": destination_path}
+        response = await bridge_manager.send_command(user_id, "copy_file", payload, timeout=60.0)
+        if response.get("status") == "success":
+            return response.get("message", "File copied via Bridge.")
+        else:
+            return response.get("message", "Failed to copy file via Bridge.")
+
+    try:
+        import platform
+        if platform.system() != 'Windows':
+            return "Error: I am currently running on a remote cloud server. I cannot copy files on your local Windows PC without a bridge."
+            
+        import shutil
+        if not os.path.exists(source_path):
+            return f"Source file does not exist: {source_path}"
+            
+        shutil.copy2(source_path, destination_path)
+        return f"Successfully copied file to: {destination_path}"
+    except Exception as e:
+        logger.error(f"Error copying file from {source_path} to {destination_path}: {e}")
+        return f"Failed to copy file: {str(e)}"
+
 def get_pc_tools():
     """Returns the list of PC control tools."""
-    return [open_folder, search_files, create_folder]
+    return [open_folder, search_files, create_folder, copy_file]
