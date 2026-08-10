@@ -9,9 +9,7 @@ import { AICore } from '../components/os/AICore';
 import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
 import { Plus, MessageSquare, RefreshCw, Trash2, LogOut, Globe } from 'lucide-react';
-import { AIOfficeScene } from '../components/office/AIOfficeScene';
 import { VoiceInterface } from '../components/voice/VoiceInterface';
-import { OfficeTaskEngine } from '../components/office/OfficeTaskEngine';
 
 const SUGGESTIONS = [
   'What is the top news today?',
@@ -260,22 +258,13 @@ if (source === 'voice') {
     setInput('');
     setAiState('thinking');
 
-    // 🏢 Dispatch task to AI Office – agents will animate while waiting for response
-    OfficeTaskEngine.dispatchTask(userMsg.content);
+    setAiState('thinking');
 
     try {
       const currentDocId = attachedDocumentId || undefined;
       // Clear attachment after sending
       setAttachedDocumentId(null);
       setAttachedFilename(null);
-      
-      // If a file was uploaded, manually trigger the 'files' department 
-      // because RAG context injection doesn't use a LangGraph tool node.
-      if (currentDocId) {
-        setTimeout(() => {
-          OfficeTaskEngine.dispatchToolTask('files_upload');
-        }, 300); // slight delay to let agent stand up first
-      }
 
       const response = await chatService.sendMessageStream(
         user.userId, 
@@ -284,7 +273,6 @@ if (source === 'voice') {
         currentDocId,
         (toolName) => {
           // Received tool execution from backend stream
-          OfficeTaskEngine.dispatchToolTask(toolName);
         },
         (msg) => {
           // This receives intermediate or final messages if needed
@@ -294,14 +282,7 @@ if (source === 'voice') {
 
       setAiState('speaking');
 
-      // 🏢 Complete ALL active agents (working / walking / standing) so none get stuck
-      const agentIds: Array<'cipher' | 'nexus' | 'echo'> = ['cipher', 'nexus', 'echo'];
-      for (const aid of agentIds) {
-        const ag = OfficeTaskEngine.getAgents()[aid];
-        if (ag.state !== 'idle' && ag.state !== 'sitting') {
-          OfficeTaskEngine.onTaskComplete(aid);
-        }
-      }
+      setAiState('speaking');
 
       let plainTextContent = 'No response received.';
       let parsedData: StructuredAIResponse | undefined = undefined;
@@ -489,10 +470,7 @@ if (source === 'voice') {
           <AICore state={aiState} />
         </div>
 
-        {/* 🏢 AI Office Scene – replaces static spinner */}
-        <div className="flex-shrink-0 border-b border-cyan-900/30 bg-gray-950/60 backdrop-blur-xl relative z-10">
-          <AIOfficeScene isThinking={aiState === 'thinking'} />
-        </div>
+
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-8 py-4 sm:py-6 z-10 scrollbar-hide space-y-6 sm:space-y-8">
           {messages.length === 0 ? (
