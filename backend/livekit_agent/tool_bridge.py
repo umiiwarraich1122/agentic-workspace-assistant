@@ -37,7 +37,10 @@ class JarvisToolBridge(llm.ToolContext):
     async def _execute_tool(self, tool_name: str, kwargs: dict, use_filler: bool = False):
         try:
             if use_filler and hasattr(self, "session") and getattr(self, "session", None):
-                asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
+                try:
+                    asyncio.create_task(self.session.say(self._get_random_filler(), allow_interruptions=True))
+                except Exception:
+                    pass  # filler is optional, never crash because of it
             
             tool = self.lc_tools.get(tool_name)
             if not tool:
