@@ -13,34 +13,10 @@ router = APIRouter(prefix="/calendar", tags=["Calendar"])
 
 @router.get("/sync")
 async def sync_calendar(x_user_id: Optional[str] = Header(None), client: GoogleClient = Depends(get_google_client)):
-    """Fetch calendar events from Google and save to Supabase to save tokens."""
+    """Fetch calendar events from Google (Database sync is now disabled)."""
     try:
         events = await get_events(client, top=10)
-        from app.database.supabase import get_supabase
-        supabase = get_supabase()
-        
-        synced_count = 0
-        for ev in events:
-            # Upsert by some unique key if available, but for now just insert/clear or simple insert
-            # We will first clear existing future events for this user to avoid duplicates on sync
-            pass
-            
-        # Clear existing
-        supabase.table("calendar").delete().eq("user_id", x_user_id).execute()
-        
-        for ev in events:
-            try:
-                supabase.table("calendar").insert({
-                    "user_id": x_user_id,
-                    "subject": ev.get("subject") or ev.get("title") or "Busy",
-                    "date": ev.get("date") or "",
-                    "time": ev.get("time") or ""
-                }).execute()
-                synced_count += 1
-            except Exception as db_err:
-                logger.error(f"Failed to sync event to DB: {db_err}")
-                
-        return {"status": "success", "synced": synced_count}
+        return {"status": "success", "synced": len(events)}
     except Exception as e:
         logger.error(f"Sync error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

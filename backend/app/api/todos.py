@@ -12,29 +12,10 @@ logger = logging.getLogger(__name__)
 
 @router.get("/sync")
 async def sync_todos(x_user_id: Optional[str] = Header(None), client: GoogleClient = Depends(get_google_client)):
-    """Fetch tasks from Google Tasks and save to Supabase to save tokens."""
+    """Fetch tasks from Google Tasks (Database sync is now disabled)."""
     try:
         tasks = await get_todos(client, top=20)
-        from app.database.supabase import get_supabase
-        supabase = get_supabase()
-        
-        # Clear existing
-        supabase.table("tasks").delete().eq("user_id", x_user_id).execute()
-        
-        synced_count = 0
-        for t in tasks:
-            try:
-                supabase.table("tasks").insert({
-                    "user_id": x_user_id,
-                    "title": t.get("title") or "Untitled",
-                    "status": t.get("status") or "needsAction",
-                    "notes": t.get("notes") or ""
-                }).execute()
-                synced_count += 1
-            except Exception as db_err:
-                logger.error(f"Failed to sync task to DB: {db_err}")
-                
-        return {"status": "success", "synced": synced_count}
+        return {"status": "success", "synced": len(tasks)}
     except Exception as e:
         logger.error(f"Sync error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
