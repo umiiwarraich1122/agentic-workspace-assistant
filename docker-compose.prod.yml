@@ -65,7 +65,21 @@ services:
     depends_on:
       - backend-api
 
+  # -- WhatsApp Gateway (Evolution API) -------------------------
+  evolution-api:
+    image: atendai/evolution-api:v2.1.1
+    container_name: evolution-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - evolution_instances:/evolution/instances
+    environment:
+      - SERVER_URL=http://localhost:8080
+      - AUTHENTICATION_API_KEY=jarvis_secure_key_123
+    restart: always
+
 volumes:
   jarvis_tokens:
   caddy_data:
   caddy_config:
+  evolution_instances:

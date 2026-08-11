@@ -8,6 +8,7 @@ import { CommandCenter } from './pages/CommandCenter';
 import { EmailModule } from './pages/EmailModule';
 import { CalendarModule } from './pages/CalendarModule';
 import { TasksModule } from './pages/TasksModule';
+import { WhatsAppModule } from './pages/WhatsAppModule';
 import { VoiceWorld } from './pages/VoiceWorld';
 import { OSLayout } from './layouts/OSLayout';
 import { GlobalEnvironment } from './components/os/GlobalEnvironment';
@@ -108,6 +109,7 @@ function App() {
               <Route path="emails" element={<EmailModule />} />
               <Route path="calendar" element={<CalendarModule />} />
               <Route path="tasks" element={<TasksModule />} />
+              <Route path="whatsapp" element={<WhatsAppModule />} />
             </Route>
 
             <Route path="/chat/voice-world" element={

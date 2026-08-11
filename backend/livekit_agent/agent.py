@@ -78,6 +78,10 @@ async def entrypoint(ctx: JobContext):
 
     # VAD
     vad_impl = ctx.proc.userdata.get("vad") or silero.VAD.load()
+    
+    # Wrap VAD with our secure interceptor
+    from livekit_agent.custom_audio.secure_vad import SecureVAD
+    secure_vad_impl = SecureVAD(vad_impl)
 
     # Create agent with instructions and tools from the tool bridge
     agent = Agent(
@@ -90,7 +94,7 @@ async def entrypoint(ctx: JobContext):
         stt=stt_impl,
         llm=llm_impl,
         tts=tts_impl,
-        vad=vad_impl,
+        vad=secure_vad_impl,
     )
 
     # Give the tool bridge access to the session for filler responses
