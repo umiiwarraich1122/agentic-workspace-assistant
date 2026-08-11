@@ -36,6 +36,7 @@ async def connect_whatsapp():
             "instanceName": instance_name,
             "token": "jarvis_secure_token",
             "qrcode": True,
+            "integration": "WHATSAPP-BAILEYS",
             "webhook": {
                 "enabled": True,
                 "url": "http://backend-api:8000/api/whatsapp/webhook",
