@@ -126,7 +126,7 @@ async def upload_image(file: UploadFile = File(...), user_id: str = Form(...)):
         mime_type = file.content_type or "image/jpeg"
         
         # Use Groq Vision for OCR
-        llm = ChatGroq(model="llama-3.2-90b-vision-preview", temperature=0)
+        llm = ChatGroq(model="qwen/qwen3.6-27b", temperature=0)
         msg = HumanMessage(content=[
             {"type": "text", "text": "Extract ALL text from this image exactly as it appears. Return only the extracted text."},
             {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64_img}"}}
