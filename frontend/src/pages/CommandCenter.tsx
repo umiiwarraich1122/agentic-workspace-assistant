@@ -501,13 +501,7 @@ if (source === 'voice') {
             <CheckSquare className="w-4 h-4 text-cyan-400" />
             Tasks
           </button>
-          <button 
-            onClick={() => navigate('/chat/whatsapp')}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-cyan-900/40 transition-colors text-sm font-mono text-cyan-100"
-          >
-            <MessageCircle className="w-4 h-4 text-cyan-400" />
-            WhatsApp
-          </button>
+
           
           <div className="h-px bg-cyan-900/30 my-2"></div>
           
