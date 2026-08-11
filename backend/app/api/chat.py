@@ -125,6 +125,8 @@ async def upload_image(file: UploadFile = File(...), user_id: str = Form(...)):
         b64_img = base64.b64encode(file_bytes).decode('utf-8')
         mime_type = file.content_type or "image/jpeg"
         
+        import re
+        
         # Use Groq Vision for OCR
         llm = ChatGroq(model="qwen/qwen3.6-27b", temperature=0)
         msg = HumanMessage(content=[
@@ -132,8 +134,10 @@ async def upload_image(file: UploadFile = File(...), user_id: str = Form(...)):
             {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64_img}"}}
         ])
         
-        res = llm.invoke([msg])
-        extracted_text = res.content
+        response = llm.invoke([msg])
+        extracted_text = response.content
+        # Qwen model might include reasoning in <think> tags, so we strip them
+        extracted_text = re.sub(r'<think>.*?</think>', '', extracted_text, flags=re.DOTALL).strip()
         
         if not extracted_text.strip():
             extracted_text = "[No text found in image]"
