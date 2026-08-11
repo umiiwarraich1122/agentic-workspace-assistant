@@ -22,3 +22,5 @@ livekit-plugins-silero
 faiss-cpu
 sentence-transformers
 langchain-huggingface
+langchain-community
+langchain-groq
