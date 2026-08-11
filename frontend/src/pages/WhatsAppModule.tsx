@@ -13,7 +13,7 @@ export function WhatsAppModule() {
   const [isSending, setIsSending] = useState(false);
   
   const { user } = useAuth();
-  const BACKEND_URL = 'http://localhost:8000'; // Adjust in production
+  const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const checkConnection = async () => {
     setStatus('checking');
