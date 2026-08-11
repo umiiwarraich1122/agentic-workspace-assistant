@@ -91,6 +91,7 @@ services:
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://evo_user:evo_pass@evolution-postgres:5432/evolution_db?schema=public
       - DATABASE_CONNECTION_CLIENT_NAME=evolution_api
+      - CACHE_REDIS_ENABLED=false
     depends_on:
       - evolution-postgres
     restart: always
