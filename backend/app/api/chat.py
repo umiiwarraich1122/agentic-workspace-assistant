@@ -114,6 +114,44 @@ async def upload_document(file: UploadFile = File(...), user_id: str = Form(...)
         logger.error(f"Error uploading document: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse document")
 
+import base64
+from langchain_groq import ChatGroq
+
+@router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...), user_id: str = Form(...)):
+    """Upload an image, extract text using OCR (Groq Vision), and inject it into the AI context."""
+    try:
+        file_bytes = await file.read()
+        b64_img = base64.b64encode(file_bytes).decode('utf-8')
+        mime_type = file.content_type or "image/jpeg"
+        
+        # Use Groq Vision for OCR
+        llm = ChatGroq(model="llama-3.2-11b-vision-preview", temperature=0)
+        msg = HumanMessage(content=[
+            {"type": "text", "text": "Extract ALL text from this image exactly as it appears. Return only the extracted text."},
+            {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64_img}"}}
+        ])
+        
+        res = llm.invoke([msg])
+        extracted_text = res.content
+        
+        if not extracted_text.strip():
+            extracted_text = "[No text found in image]"
+            
+        doc_id = str(uuid.uuid4())
+        from app.rag.retriever import index_document
+        index_document(doc_id, file.filename, extracted_text)
+        
+        return {
+            "document_id": doc_id, 
+            "filename": file.filename,
+            "ocr_text": extracted_text[:200] + ("..." if len(extracted_text) > 200 else "")
+        }
+    except Exception as e:
+        logger.error(f"Error processing image OCR: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process image")
+
+
 @router.post("")
 async def chat(request: ChatRequest):
     """Send a message to the Jarvis AI Assistant (Streaming SSE)."""
@@ -139,7 +177,11 @@ async def chat(request: ChatRequest):
         doc = store.get_document(request.attached_document_id)
         if doc and thread_state["messages"] and isinstance(thread_state["messages"][-1], HumanMessage):
             original_content = thread_state["messages"][-1].content
-            injected_content = f"[System Notice: The user has attached a document named '{doc['filename']}'. To query its contents, you MUST use the document_search tool with document_id: {request.attached_document_id}]\n\nUser Message:\n{original_content}"
+            
+            is_image = any(doc['filename'].lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp', '.gif'])
+            file_type_desc = "an image" if is_image else "a document"
+            
+            injected_content = f"[System Notice: The user has attached {file_type_desc} named '{doc['filename']}'. To query its contents, you MUST use the document_search tool with document_id: {request.attached_document_id}]\n\nUser Message:\n{original_content}"
             thread_state["messages"][-1].content = injected_content
 
     async def event_generator():

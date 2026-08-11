@@ -222,6 +222,32 @@ export function CommandCenter() {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!user) return;
+    setIsUploading(true);
+    try {
+      const data = await chatService.uploadImage(user.userId, file);
+      setAttachedDocumentId(data.document_id);
+      setAttachedFilename(data.filename);
+      
+      // Show OCR preview message immediately
+      if (data.ocr_text) {
+        const previewMsg = {
+          id: crypto.randomUUID(),
+          sender: 'ai' as const,
+          content: `📷 **Image Uploaded**\n\nI successfully extracted the following text from your image:\n\n> ${data.ocr_text}\n\nYou can now ask me questions about it!`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, previewMsg]);
+      }
+    } catch (e) {
+      console.error("Image upload failed", e);
+      alert("Failed to process image OCR");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const updateVoiceDraftMessage = (text: string) => {
     console.debug('[CommandCenter] voice transcript update:', text);
     const trimmed = text.trim();
@@ -625,6 +651,7 @@ if (source === 'voice') {
             onSend={() => handleSend()}
             isLoading={aiState === 'thinking'}
             onFileUpload={handleFileUpload}
+            onImageUpload={handleImageUpload}
             attachedFilename={attachedFilename}
             onRemoveAttachment={() => {
               setAttachedDocumentId(null);

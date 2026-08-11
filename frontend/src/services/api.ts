@@ -68,6 +68,17 @@ export const chatService = {
     });
     return response.data;
   },
+  uploadImage: async (userId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_id', userId);
+    const response = await api.post('/api/chat/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
   getThreads: async (userId: string) => {
     const response = await api.get('/api/chat/threads', { params: { user_id: userId } });
     return response.data;
