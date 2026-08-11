@@ -34,24 +34,31 @@ async def connect_whatsapp():
         # If not connected, create or fetch QR
         payload = {
             "instanceName": instance_name,
-            "token": "",
+            "token": "jarvis_secure_token",
             "qrcode": True,
-            "integration": "WHATSAPP-BAILEYS",
-            "webhook": "http://backend-api:8000/api/whatsapp/webhook", # Point back to FastAPI
-            "events": ["MESSAGES_UPSERT"]
+            "webhook": {
+                "enabled": True,
+                "url": "http://backend-api:8000/api/whatsapp/webhook",
+                "byEvents": False,
+                "base64": False,
+                "events": ["MESSAGES_UPSERT"]
+            }
         }
         try:
             resp = await client.post(f"{EVOLUTION_API_URL}/instance/create", json=payload, headers=headers, timeout=10.0)
             if resp.status_code in [200, 201]:
                 return {"status": "qr_generated", "data": resp.json()}
             
+            logger.error(f"Failed to create instance. Status: {resp.status_code}, Body: {resp.text}")
+            
             # If instance already exists, just connect to get QR
             connect_resp = await client.get(f"{EVOLUTION_API_URL}/instance/connect/{instance_name}", headers=headers, timeout=10.0)
             if connect_resp.status_code == 200:
                 return {"status": "qr_generated", "data": connect_resp.json()}
                 
-            raise HTTPException(status_code=400, detail="Failed to generate QR code")
+            raise HTTPException(status_code=400, detail=f"Failed to generate QR code: {resp.text}")
         except Exception as e:
+            logger.error(f"Exception during create: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
 import json
