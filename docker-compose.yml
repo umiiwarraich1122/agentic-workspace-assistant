@@ -31,6 +31,18 @@ services:
     command: python -m livekit_agent.agent start
     restart: always
 
+  # -- Database for Evolution API -------------------------
+  evolution-postgres:
+    image: postgres:15-alpine
+    container_name: evolution-postgres
+    environment:
+      - POSTGRES_USER=evo_user
+      - POSTGRES_PASSWORD=evo_pass
+      - POSTGRES_DB=evolution_db
+    volumes:
+      - evolution_db_data:/var/lib/postgresql/data
+    restart: always
+
   # -- WhatsApp Gateway (Evolution API) -------------------------
   evolution-api:
     image: evoapicloud/evolution-api:latest
@@ -42,6 +54,11 @@ services:
     environment:
       - SERVER_URL=http://localhost:8080
       - AUTHENTICATION_API_KEY=jarvis_secure_key_123
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://evo_user:evo_pass@evolution-postgres:5432/evolution_db?schema=public
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution_api
+    depends_on:
+      - evolution-postgres
     restart: always
 
 volumes:
