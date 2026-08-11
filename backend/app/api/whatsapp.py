@@ -74,9 +74,28 @@ def save_message(msg):
     with open(DB_FILE, "w") as f:
         json.dump(messages, f)
 
+@router.get("/chats")
+async def fetch_chats():
+    """Fetch active chats from Evolution API"""
+    instance_name = "jarvis_instance"
+    headers = {"apikey": GLOBAL_API_KEY}
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(f"{EVOLUTION_API_URL}/chat/findChats/{instance_name}", headers=headers, timeout=10.0)
+            if resp.status_code == 200:
+                return resp.json()
+            return []
+        except Exception as e:
+            logger.error(f"Error fetching chats: {e}")
+            return []
+
 @router.get("/messages")
-async def fetch_messages():
-    return get_messages()
+async def fetch_messages(jid: Optional[str] = None):
+    """Fetch messages from local cache, filtered by JID"""
+    messages = get_messages()
+    if jid:
+        messages = [m for m in messages if m.get("remote_jid") == jid]
+    return messages
 
 @router.post("/webhook")
 async def whatsapp_webhook(request: Request):
