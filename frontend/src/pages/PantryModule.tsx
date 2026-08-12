@@ -5,7 +5,6 @@ import {
   PackageOpen, Calendar, Box, ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
 import { pantryService } from '../services/api';
 
 interface PantryItem {
@@ -29,7 +28,6 @@ const UNITS = [
 
 export function PantryModule() {
   const { user } = useAuth();
-  const { showNotification } = useNotification();
   
   const [items, setItems] = useState<PantryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +61,6 @@ export function PantryModule() {
       setItems(data || []);
     } catch (error) {
       console.error("Failed to fetch pantry items", error);
-      showNotification("Failed to load pantry items", "error");
     } finally {
       setIsLoading(false);
     }
@@ -105,16 +102,13 @@ export function PantryModule() {
 
       if (editingItem) {
         await pantryService.updateItem(user.id, editingItem.id, payload);
-        showNotification("Item updated successfully", "success");
       } else {
         await pantryService.addItem(user.id, payload);
-        showNotification("Item added successfully", "success");
       }
       setIsAddModalOpen(false);
       fetchItems();
     } catch (error) {
       console.error("Failed to save pantry item", error);
-      showNotification("Failed to save item", "error");
     }
   };
 
@@ -122,12 +116,10 @@ export function PantryModule() {
     if (!user || !deletingItemId) return;
     try {
       await pantryService.deleteItem(user.id, deletingItemId);
-      showNotification("Item removed from pantry", "success");
       setDeletingItemId(null);
       fetchItems();
     } catch (error) {
       console.error("Failed to delete pantry item", error);
-      showNotification("Failed to delete item", "error");
     }
   };
 
