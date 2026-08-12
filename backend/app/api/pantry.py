@@ -23,7 +23,7 @@ class PantryItemUpdate(BaseModel):
     category: Optional[str] = None
     expiry_date: Optional[date] = None
 
-@router.get("/")
+@router.get("")
 def get_pantry_items(x_user_id: str = Header(...)):
     """Fetch all pantry items for the logged-in user."""
     supabase = get_supabase_client()
@@ -37,7 +37,7 @@ def get_pantry_items(x_user_id: str = Header(...)):
         logger.error(f"Error fetching pantry items: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/")
+@router.post("")
 def add_pantry_item(item: PantryItemCreate, x_user_id: str = Header(...)):
     """Add a new item to the user's pantry."""
     supabase = get_supabase_client()

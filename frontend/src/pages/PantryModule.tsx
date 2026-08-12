@@ -57,7 +57,7 @@ export function PantryModule() {
     if (!user) return;
     try {
       setIsLoading(true);
-      const data = await pantryService.getItems(user.id);
+      const data = await pantryService.getItems(user.userId);
       setItems(data || []);
     } catch (error) {
       console.error("Failed to fetch pantry items", error);
@@ -101,9 +101,9 @@ export function PantryModule() {
       };
 
       if (editingItem) {
-        await pantryService.updateItem(user.id, editingItem.id, payload);
+        await pantryService.updateItem(user.userId, editingItem.id, payload);
       } else {
-        await pantryService.addItem(user.id, payload);
+        await pantryService.addItem(user.userId, payload);
       }
       setIsAddModalOpen(false);
       fetchItems();
@@ -115,7 +115,7 @@ export function PantryModule() {
   const handleDelete = async () => {
     if (!user || !deletingItemId) return;
     try {
-      await pantryService.deleteItem(user.id, deletingItemId);
+      await pantryService.deleteItem(user.userId, deletingItemId);
       setDeletingItemId(null);
       fetchItems();
     } catch (error) {
