@@ -163,3 +163,22 @@ export const googleService = {
 
 // Export alias for backwards compatibility
 export const graphService = googleService;
+
+export const pantryService = {
+  getItems: async (userId: string) => {
+    const response = await api.get('/api/pantry', { headers: { 'X-User-Id': userId } });
+    return response.data;
+  },
+  addItem: async (userId: string, data: any) => {
+    const response = await api.post('/api/pantry', data, { headers: { 'X-User-Id': userId } });
+    return response.data;
+  },
+  updateItem: async (userId: string, itemId: string, data: any) => {
+    const response = await api.put(`/api/pantry/${itemId}`, data, { headers: { 'X-User-Id': userId } });
+    return response.data;
+  },
+  deleteItem: async (userId: string, itemId: string) => {
+    const response = await api.delete(`/api/pantry/${itemId}`, { headers: { 'X-User-Id': userId } });
+    return response.data;
+  }
+};

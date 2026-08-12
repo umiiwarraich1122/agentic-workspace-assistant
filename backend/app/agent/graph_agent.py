@@ -10,6 +10,7 @@ from app.tools.reminder_tools import get_reminder_tools
 from app.tools.weather_tool import get_weather_tools
 from app.tools.map_tool import get_map_tools
 from app.tools.document_tool import get_document_tools
+from app.tools.pantry_tools import get_pantry_tools
 from app.agent.evaluator import evaluate_tool_results
 from app.config import settings
 from langgraph.prebuilt import ToolNode
@@ -30,7 +31,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         *get_reminder_tools(access_token),
         *get_weather_tools(),
         *get_map_tools(),
-        *get_document_tools()
+        *get_document_tools(),
+        *get_pantry_tools(user_id)
     ]
     
     # Model selection logic:
@@ -116,7 +118,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         
         time_context = f" The user's current device time is {local_time} in the {timezone} timezone. You MUST use this exact time as your reference point whenever resolving relative dates like 'tomorrow', 'next week', or 'at 5pm'." if local_time else ""
         system_prompt_text = (
-            "You are Mr. Jarvis, an AI Assistant. You have tools for Gmail, Calendar, Tasks, Web Search, PC Control, Weather, Maps, and Document Search. You MUST use tools to execute requests. "
+            "You are Mr. Jarvis, an AI Assistant. You have tools for Gmail, Calendar, Tasks, Web Search, PC Control, Weather, Maps, Document Search, and Smart Pantry. You MUST use tools to execute requests. "
             "IMPORTANT: 1. You may respond in normal plain text for conversational replies and email drafts. "
             "2. ONLY when displaying a list of emails from the database, you MUST output a JSON object with an 'emails' array. "
             "3. When drafting an email, FIRST call the create_email_draft tool, then output the draft in plain text using this EXACT format: '📧 Email 1\\n\\nTo:\\n<recipient>\\n\\nSubject:\\n<subject>\\n\\nBody:\\n<body>', and ask the user 'Would you like me to send this email now?'. If they reply 'yes' or 'send it', use the send_email_draft tool. "
@@ -128,7 +130,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
             "1. WEB SEARCH & LIVE DATA INTENT (Target Node: BROWSER): If the user query asks for current events, live information, web searches, news, or real-time data (e.g., 'what is the top news today', 'search for...', 'weather in...', 'latest prices'), you MUST route the agent strictly to use web search tools (like get_latest_news) and act as the BROWSER node. Never process live web queries using internal knowledge (Neural Core).\n"
             "2. FILE PROCESSING & DOCUMENT QUERY INTENT (Target Node: FILES): If the user uploads a document, image, or file and asks a question referencing local content, uploaded files, or document summaries, you MUST act as the FILES node to process it.\n"
             "3. PC CONTROL INTENT (Target Node: SYSTEM): If the user asks you to open a folder, search for a file, or create a folder on their PC, you MUST use the PC Control tools (open_folder, search_files, create_folder).\n"
-            "4. REASONING & GENERAL AI INTENT (Target Node: NEURAL CORE): Act as NEURAL CORE only for general knowledge, coding logic, creative writing, or abstract reasoning that does not require live web browsing, local file inspection, or PC control.\n"
+            "4. PANTRY/GROCERY INTENT: If the user asks about groceries, pantry items, stock, or adding/removing food items, you MUST use the Smart Pantry tools (get_pantry_items, add_pantry_item, etc).\n"
+            "5. REASONING & GENERAL AI INTENT (Target Node: NEURAL CORE): Act as NEURAL CORE only for general knowledge, coding logic, creative writing, or abstract reasoning that does not require live web browsing, local file inspection, or PC control.\n"
             "CRITICAL INSTRUCTION: Analyze the incoming prompt's semantic intent and metadata (such as active file attachments) first before responding."
         )
         system_prompt = SystemMessage(content=system_prompt_text + time_context)
