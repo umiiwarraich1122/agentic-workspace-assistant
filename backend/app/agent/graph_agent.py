@@ -134,10 +134,28 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         system_prompt = SystemMessage(content=system_prompt_text + time_context)
         
         # Keep only recent messages to prevent token quota exceeded (429) errors
+        # We need to ensure we don't break the AIMessage -> ToolMessage sequence
+        # So we look backwards for the last HumanMessage or the start of the current tool execution chain
+        from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+        
         recent_messages = messages[-6:] if len(messages) > 6 else messages
         
+        # Ensure we don't start with a ToolMessage (which requires a preceding AIMessage with tool_calls)
+        while recent_messages and isinstance(recent_messages[0], ToolMessage):
+            recent_messages.pop(0)
+            
+        # Truncate extremely long contents to avoid hitting the 6000 TPM Groq limit
+        truncated_messages = []
+        for msg in recent_messages:
+            msg_content = msg.content
+            if isinstance(msg_content, str) and len(msg_content) > 2000:
+                msg.content = msg_content[:2000] + "... [TRUNCATED DUE TO TOKEN LIMIT]"
+            truncated_messages.append(msg)
+            
+        recent_messages = truncated_messages
+        
         # Ensure system prompt is always at the beginning
-        if not recent_messages or not getattr(recent_messages[0], 'type', None) == 'system':
+        if not recent_messages or getattr(recent_messages[0], 'type', None) != 'system':
             recent_messages = [system_prompt] + recent_messages
             
         for attempt in range(3):
