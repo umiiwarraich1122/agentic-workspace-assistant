@@ -49,10 +49,10 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     model = None
 
     if groq_key:
-        logger.info("Using Groq qwen/qwen3.6-27b")
+        logger.info("Using Groq openai/gpt-oss-120b")
         from langchain_groq import ChatGroq
         model = ChatGroq(
-            model="qwen/qwen3.6-27b",
+            model="openai/gpt-oss-120b",
             temperature=0,
             api_key=groq_key,
             timeout=15.0,
