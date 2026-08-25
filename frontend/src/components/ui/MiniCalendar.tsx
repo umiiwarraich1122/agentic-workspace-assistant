@@ -54,7 +54,7 @@ export function MiniCalendar({ events = [] }: { events?: any[] }) {
       
       <div className="grid grid-cols-7 gap-2">
         {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-          <div key={\empty-\\} className="h-10"></div>
+          <div key={`empty-${i}`} className="h-10"></div>
         ))}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1;
@@ -64,10 +64,10 @@ export function MiniCalendar({ events = [] }: { events?: any[] }) {
           return (
             <div 
               key={day} 
-              className={\h-10 flex flex-col items-center justify-center rounded-lg text-sm font-mono relative transition-all
-                \
-                \
-              \}
+              className={`h-10 flex flex-col items-center justify-center rounded-lg text-sm font-mono relative transition-all
+                ${isToday ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 font-bold' : 'text-gray-300 hover:bg-gray-800'}
+                ${hasEvent && !isToday ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30 font-bold' : ''}
+              `}
             >
               {day}
               {hasEvent && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-cyan-400"></div>}
