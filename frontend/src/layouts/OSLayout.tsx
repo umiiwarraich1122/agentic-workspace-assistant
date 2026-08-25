@@ -16,7 +16,13 @@ export function OSLayout() {
   const { reminderPopup, clearReminder } = useNotifications();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      await fetch(`${BACKEND_URL}/api/whatsapp/logout`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('Error logging out of WhatsApp', e);
+    }
     logout();
     navigate('/');
   };

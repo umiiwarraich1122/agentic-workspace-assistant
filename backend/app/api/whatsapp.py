@@ -164,3 +164,16 @@ async def send_message(req: SendMessageRequest):
         except Exception as e:
             logger.error(f"Failed to send message: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to send WhatsApp message: {e}")
+@router.delete("/logout")
+async def logout_whatsapp():
+    """Logs out and deletes the WhatsApp instance"""
+    instance_name = "jarvis_instance"
+    headers = {"apikey": GLOBAL_API_KEY}
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.delete(f"{EVOLUTION_API_URL}/instance/logout/{instance_name}", headers=headers, timeout=10.0)
+            await client.delete(f"{EVOLUTION_API_URL}/instance/delete/{instance_name}", headers=headers, timeout=10.0)
+            return {"status": "logged_out"}
+        except Exception as e:
+            logger.error(f"Error logging out: {e}")
+            return {"status": "error"}
