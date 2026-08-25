@@ -19,7 +19,7 @@ export function WhatsAppModule() {
     if (messages.length === 0 || !activeChat) return;
     setIsGeneratingAI(true);
     try {
-      const recentMessages = messages.slice(-5).map(m => `${m.is_from_me ? 'Me' : activeChat.name || activeChat.id.split('@')[0]}: ${m.message_content}`).join('\n');
+      const recentMessages = messages.slice(-5).map(m => `${m.is_from_me ? 'Me' : activeChat.name || (activeChat.id || activeChat.remoteJid || '').split('@')[0]}: ${m.message_content}`).join('\n');
       const prompt = `Based on the following recent WhatsApp conversation, generate a short, natural, and helpful reply on my behalf. DO NOT put quotes around the reply. Just return the text.\n\nConversation:\n${recentMessages}`;
       
       const { chatService } = await import('../services/api');
@@ -90,10 +90,10 @@ export function WhatsAppModule() {
       await fetch(`${BACKEND_URL}/api/whatsapp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: activeChat.id.split('@')[0], message: replyText })
+        body: JSON.stringify({ number: (activeChat.id || activeChat.remoteJid || '').split('@')[0], message: replyText })
       });
       setReplyText('');
-      fetchMessages(activeChat.id);
+      fetchMessages(activeChat.id || activeChat.remoteJid);
     } catch (e) {
       console.error(e);
     } finally {
@@ -107,7 +107,7 @@ export function WhatsAppModule() {
       if (status === 'connected') {
         fetchChats();
         if (activeChat) {
-          fetchMessages(activeChat.id);
+          fetchMessages(activeChat.id || activeChat.remoteJid);
         }
       }
     }, 5000);
@@ -117,7 +117,7 @@ export function WhatsAppModule() {
   // Select chat handler
   const handleChatSelect = (chat: any) => {
     setActiveChat(chat);
-    fetchMessages(chat.id);
+    fetchMessages(chat.id || chat.remoteJid || '');
   };
 
   return (
@@ -206,9 +206,9 @@ export function WhatsAppModule() {
                 ) : (
                   chats.map((chat) => (
                     <button
-                      key={chat.id}
+                      key={chat.id || chat.remoteJid || ''}
                       onClick={() => handleChatSelect(chat)}
-                      className={`w-full flex items-center gap-3 p-4 border-b border-cyan-900/20 hover:bg-cyan-950/40 transition-colors text-left ${activeChat?.id === chat.id ? 'bg-cyan-900/30 border-l-2 border-l-cyan-400' : ''}`}
+                      className={`w-full flex items-center gap-3 p-4 border-b border-cyan-900/20 hover:bg-cyan-950/40 transition-colors text-left ${activeChat && (activeChat.id || activeChat.remoteJid) === (chat.id || chat.remoteJid) ? 'bg-cyan-900/30 border-l-2 border-l-cyan-400' : ''}`}
                     >
                       <div className="w-10 h-10 rounded-full bg-gray-800 border border-cyan-900/50 flex items-center justify-center flex-shrink-0">
                         {chat.profilePicUrl ? (
@@ -219,7 +219,7 @@ export function WhatsAppModule() {
                       </div>
                       <div className="flex-1 overflow-hidden">
                         <div className="font-sans font-semibold text-cyan-50 truncate text-sm">
-                          {chat.name || chat.pushName || chat.id.split('@')[0]}
+                          {chat.name || chat.pushName || (chat.id || chat.remoteJid || '').split('@')[0]}
                         </div>
                         <div className="text-xs text-gray-500 truncate font-sans">
                            {/* Preview last message if available from Evolution */}
@@ -245,9 +245,9 @@ export function WhatsAppModule() {
                        )}
                     </div>
                     <div>
-                      <h3 className="font-sans font-bold text-cyan-50">{activeChat.name || activeChat.pushName || activeChat.id.split('@')[0]}</h3>
+                      <h3 className="font-sans font-bold text-cyan-50">{activeChat.name || activeChat.pushName || (activeChat.id || activeChat.remoteJid || '').split('@')[0]}</h3>
                       <div className="text-xs font-mono text-cyan-400/70 flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {activeChat.id.split('@')[0]}
+                        <Phone className="w-3 h-3" /> {(activeChat.id || activeChat.remoteJid || '').split('@')[0]}
                       </div>
                     </div>
                   </div>
