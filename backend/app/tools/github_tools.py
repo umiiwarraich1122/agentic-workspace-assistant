@@ -27,12 +27,12 @@ async def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
             return result.content[0].text if result.content else "No response"
 
 @tool
-def github_get_repository_info(owner: str, repo: str) -> str:
+def github_get_repository_info(repo: str, owner: str = "") -> str:
     """Use this to fetch basic information about a GitHub repository (stars, forks, open issues)."""
     return asyncio.run(_call_mcp_tool("get_repository_info", {"owner": owner, "repo": repo}))
 
 @tool
-def github_get_recent_commits(owner: str, repo: str, limit: int = 5) -> str:
+def github_get_recent_commits(repo: str, owner: str = "", limit: int = 5) -> str:
     """Use this to fetch the most recent commits for a GitHub repository to track progress."""
     return asyncio.run(_call_mcp_tool("get_recent_commits", {"owner": owner, "repo": repo, "limit": limit}))
 
@@ -42,7 +42,7 @@ def github_list_my_repositories(limit: int = 50) -> str:
     return asyncio.run(_call_mcp_tool("list_my_repositories", {"limit": limit}))
 
 @tool
-def github_get_total_commits(owner: str, repo: str) -> str:
+def github_get_total_commits(repo: str, owner: str = "") -> str:
     """Use this to get the total number of commits for a specific repository."""
     return asyncio.run(_call_mcp_tool("get_total_commits", {"owner": owner, "repo": repo}))
 

@@ -11,6 +11,13 @@ load_dotenv()
 mcp = FastMCP("GitHub Server")
 
 # 2. Helper function to get authentication headers
+
+def get_authenticated_user():
+    response = requests.get("https://api.github.com/user", headers=get_headers())
+    if response.status_code == 200:
+        return response.json().get("login")
+    raise ValueError("Failed to get authenticated user")
+
 def get_headers():
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
@@ -22,7 +29,9 @@ def get_headers():
     }
 
 @mcp.tool()
-def get_repository_info(owner: str, repo: str) -> str:
+def get_repository_info(repo: str, owner: str = "") -> str:
+    if not owner:
+        owner = get_authenticated_user()
     """Fetch basic information about a GitHub repository (stars, forks, open issues)."""
     url = f"https://api.github.com/repos/{owner}/{repo}"
     response = requests.get(url, headers=get_headers())
@@ -41,7 +50,9 @@ def get_repository_info(owner: str, repo: str) -> str:
     )
 
 @mcp.tool()
-def get_recent_commits(owner: str, repo: str, limit: int = 5) -> str:
+def get_recent_commits(repo: str, owner: str = "", limit: int = 5) -> str:
+    if not owner:
+        owner = get_authenticated_user()
     """Fetch the most recent commits for a GitHub repository."""
     url = f"https://api.github.com/repos/{owner}/{repo}/commits?per_page={limit}"
     response = requests.get(url, headers=get_headers())
@@ -78,7 +89,9 @@ def list_my_repositories(limit: int = 50) -> str:
     return result
 
 @mcp.tool()
-def get_total_commits(owner: str, repo: str) -> str:
+def get_total_commits(repo: str, owner: str = "") -> str:
+    if not owner:
+        owner = get_authenticated_user()
     """Get the total number of commits for a specific repository. Helpful for 'how many commits on a specific project'."""
     url = f"https://api.github.com/repos/{owner}/{repo}/commits?per_page=1"
     response = requests.get(url, headers=get_headers())
