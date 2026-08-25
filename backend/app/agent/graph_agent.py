@@ -49,10 +49,10 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
     model = None
 
     if groq_key:
-        logger.info("Using Groq llama-3.1-8b-instant")
+        logger.info("Using Groq llama3-8b-8192")
         from langchain_groq import ChatGroq
         model = ChatGroq(
-            model="llama-3.1-8b-instant",
+            model="llama3-8b-8192",
             temperature=0,
             api_key=groq_key,
             timeout=15.0,
