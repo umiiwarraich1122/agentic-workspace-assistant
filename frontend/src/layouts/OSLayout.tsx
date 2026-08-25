@@ -35,6 +35,7 @@ export function OSLayout() {
     { icon: Mail, label: 'Emails', path: '/chat/emails' },
     { icon: CalendarIcon, label: 'Calendar', path: '/chat/calendar' },
     { icon: CheckSquare, label: 'Tasks', path: '/chat/tasks' },
+    { icon: MessageSquare, label: 'GitHub', path: '/chat/github' },
   ];
 
   return (

@@ -8,7 +8,7 @@ import { CyberInput } from '../components/ui/CyberInput';
 import { AICore } from '../components/os/AICore';
 import type { AIState } from '../components/os/AICore';
 import EmailTable from '../components/emails/EmailTable';
-import { Plus, MessageSquare, RefreshCw, Trash2, LogOut, Globe, Mail, Calendar, CheckSquare, MessageCircle, PackageOpen } from 'lucide-react';
+import { Plus, MessageSquare, RefreshCw, Trash2, LogOut, Globe, Mail, Calendar, CheckSquare, MessageCircle, PackageOpen, Github } from 'lucide-react';
 import { VoiceInterface } from '../components/voice/VoiceInterface';
 
 const SUGGESTIONS = [
@@ -507,6 +507,13 @@ if (source === 'voice') {
           >
             <PackageOpen className="w-4 h-4 text-cyan-400" />
             Smart Pantry
+          </button>
+          <button 
+            onClick={() => navigate('/chat/github')}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-cyan-900/40 transition-colors text-sm font-mono text-cyan-100"
+          >
+            <Github className="w-4 h-4 text-cyan-400" />
+            GitHub Repo
           </button>
 
           

@@ -10,6 +10,7 @@ import { CalendarModule } from './pages/CalendarModule';
 import { TasksModule } from './pages/TasksModule';
 import { WhatsAppModule } from './pages/WhatsAppModule';
 import { PantryModule } from './pages/PantryModule';
+import { GithubModule } from './pages/GithubModule';
 import { VoiceWorld } from './pages/VoiceWorld';
 import { OSLayout } from './layouts/OSLayout';
 import { GlobalEnvironment } from './components/os/GlobalEnvironment';
@@ -112,6 +113,7 @@ function App() {
               <Route path="tasks" element={<TasksModule />} />
               <Route path="whatsapp" element={<WhatsAppModule />} />
               <Route path="pantry" element={<PantryModule />} />
+              <Route path="github" element={<GithubModule />} />
             </Route>
 
             <Route path="/chat/voice-world" element={
