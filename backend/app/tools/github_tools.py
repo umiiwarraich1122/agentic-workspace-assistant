@@ -36,6 +36,21 @@ def github_get_recent_commits(owner: str, repo: str, limit: int = 5) -> str:
     """Use this to fetch the most recent commits for a GitHub repository to track progress."""
     return asyncio.run(_call_mcp_tool("get_recent_commits", {"owner": owner, "repo": repo, "limit": limit}))
 
+@tool
+def github_list_my_repositories(limit: int = 50) -> str:
+    """Use this to list the authenticated user's repositories. Helpful for 'how many repos are there' or 'which is my best project'."""
+    return asyncio.run(_call_mcp_tool("list_my_repositories", {"limit": limit}))
+
+@tool
+def github_get_total_commits(owner: str, repo: str) -> str:
+    """Use this to get the total number of commits for a specific repository."""
+    return asyncio.run(_call_mcp_tool("get_total_commits", {"owner": owner, "repo": repo}))
+
 def get_github_mcp_tools():
     """Returns the list of GitHub MCP tools for the LangGraph agent."""
-    return [github_get_repository_info, github_get_recent_commits]
+    return [
+        github_get_repository_info, 
+        github_get_recent_commits, 
+        github_list_my_repositories, 
+        github_get_total_commits
+    ]

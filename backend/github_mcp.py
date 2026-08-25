@@ -1,5 +1,6 @@
 import os
 import requests
+import re
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 
@@ -20,7 +21,6 @@ def get_headers():
         "User-Agent": "MR-JARVIS-MCP"
     }
 
-# 3. Define our first tool: Get Repository Info
 @mcp.tool()
 def get_repository_info(owner: str, repo: str) -> str:
     """Fetch basic information about a GitHub repository (stars, forks, open issues)."""
@@ -40,7 +40,6 @@ def get_repository_info(owner: str, repo: str) -> str:
         f"Language: {data.get('language', 'Unknown')}"
     )
 
-# 4. Define our second tool: Get Recent Commits
 @mcp.tool()
 def get_recent_commits(owner: str, repo: str, limit: int = 5) -> str:
     """Fetch the most recent commits for a GitHub repository."""
@@ -53,14 +52,48 @@ def get_recent_commits(owner: str, repo: str, limit: int = 5) -> str:
     commits = response.json()
     result = f"Recent Commits for {owner}/{repo}:\n\n"
     for commit in commits:
-        sha = commit['sha'][:7] # Short commit hash
+        sha = commit['sha'][:7]
         author = commit['commit']['author']['name']
-        message = commit['commit']['message'].split('\n')[0] # Only take the first line of the commit message
+        message = commit['commit']['message'].split('\n')[0]
         date = commit['commit']['author']['date']
         result += f"- [{sha}] {date} by {author}: {message}\n"
         
     return result
 
+@mcp.tool()
+def list_my_repositories(limit: int = 50) -> str:
+    """List the authenticated user's repositories. Helpful for answering 'how many repos are there' or 'which is my best project'."""
+    url = f"https://api.github.com/user/repos?sort=updated&per_page={limit}"
+    response = requests.get(url, headers=get_headers())
+    
+    if response.status_code != 200:
+        return f"Error: {response.json().get('message', 'Unknown error')}"
+        
+    repos = response.json()
+    result = f"You have {len(repos)} repositories (showing up to {limit}):\n\n"
+    for r in repos:
+        result += f"- {r['full_name']} | Stars: {r['stargazers_count']} | Language: {r.get('language', 'N/A')}\n"
+        if r.get('description'):
+            result += f"  Summary: {r['description']}\n"
+    return result
+
+@mcp.tool()
+def get_total_commits(owner: str, repo: str) -> str:
+    """Get the total number of commits for a specific repository. Helpful for 'how many commits on a specific project'."""
+    url = f"https://api.github.com/repos/{owner}/{repo}/commits?per_page=1"
+    response = requests.get(url, headers=get_headers())
+    
+    if response.status_code != 200:
+        return f"Error: {response.json().get('message', 'Unknown error')}"
+        
+    link_header = response.headers.get("Link")
+    if link_header:
+        match = re.search(r'page=(\d+)>; rel="last"', link_header)
+        if match:
+            return f"The repository {owner}/{repo} has {match.group(1)} total commits."
+            
+    commits = response.json()
+    return f"The repository {owner}/{repo} has {len(commits)} total commits."
+
 if __name__ == "__main__":
-    # 5. Run the server using Standard Input/Output (stdio)
     mcp.run()
