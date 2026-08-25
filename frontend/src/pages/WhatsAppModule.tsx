@@ -23,9 +23,9 @@ export function WhatsAppModule() {
       if (data.status === 'connected') {
         setStatus('connected');
         fetchChats();
-      } else if (data.status === 'qr_generated' && data.data?.qrcode?.base64) {
+      } else if (data.status === 'qr_generated' && (data.data?.qrcode?.base64 || data.data?.base64)) {
         setStatus('qr_ready');
-        setQrCode(data.data.qrcode.base64);
+        setQrCode(data.data.qrcode?.base64 || data.data.base64);
       } else {
         setStatus('error');
       }
