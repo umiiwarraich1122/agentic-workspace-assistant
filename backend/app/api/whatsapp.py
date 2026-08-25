@@ -89,7 +89,7 @@ async def fetch_chats():
     headers = {"apikey": GLOBAL_API_KEY}
     async with httpx.AsyncClient() as client:
         try:
-            resp = await client.get(f"{EVOLUTION_API_URL}/chat/findChats/{instance_name}", headers=headers, timeout=10.0)
+            resp = await client.post(f"{EVOLUTION_API_URL}/chat/findChats/{instance_name}", headers=headers, timeout=10.0)
             if resp.status_code == 200:
                 return resp.json()
             return []
