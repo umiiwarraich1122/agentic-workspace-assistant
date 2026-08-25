@@ -11,6 +11,7 @@ from app.tools.weather_tool import get_weather_tools
 from app.tools.map_tool import get_map_tools
 from app.tools.document_tool import get_document_tools
 from app.tools.pantry_tools import get_pantry_tools
+from app.tools.github_tools import get_github_mcp_tools
 from app.agent.evaluator import evaluate_tool_results
 from app.config import settings
 from langgraph.prebuilt import ToolNode
@@ -32,7 +33,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         *get_weather_tools(),
         *get_map_tools(),
         *get_document_tools(),
-        *get_pantry_tools(user_id)
+        *get_pantry_tools(user_id),
+        *get_github_mcp_tools()
     ]
     
     # Model selection logic:
@@ -124,7 +126,7 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
             "3. Drafting emails: FIRST call create_email_draft, then output '📧 Email 1\\nTo: <recipient>\\nSubject: <subject>\\nBody: <body>' and ask if they want to send. "
             "4. Summarize tool data (news, calendar, pantry) in plain text. "
             "5. 'Remind me' -> Use set_reminder tool. "
-            "RULES: Use BROWSER tools for live/web data. Use FILES tools for docs. Use PC tools for OS. Use Pantry tools for groceries."
+            "RULES: Use BROWSER tools for live/web data. Use FILES tools for docs. Use PC tools for OS. Use Pantry tools for groceries. Use GITHUB tools for code, repositories, and commits."
         )
         system_prompt = SystemMessage(content=system_prompt_text + time_context)
         
