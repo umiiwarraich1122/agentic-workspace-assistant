@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleService, api } from '../services/api';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { MiniCalendar } from '../components/ui/MiniCalendar';
 
 export function CalendarModule() {
   const navigate = useNavigate();
@@ -121,63 +122,67 @@ export function CalendarModule() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4 pb-12">
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <RefreshCw className="w-8 h-8 text-cyan-500 animate-spin" />
-          </div>
-        ) : events.length === 0 ? (
-          <div className="text-center text-gray-500 font-mono mt-10 p-12 bg-gray-950/40 rounded-2xl border border-white/5">
-            No upcoming events found in timeline.
-          </div>
-        ) : (
-          events.map((ev, idx) => {
-            const { day, month } = parseEventDate(ev);
-            return (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                key={idx}
-                className="flex items-center gap-6 p-6 rounded-2xl bg-gray-950/60 backdrop-blur-md border border-cyan-900/30 hover:border-cyan-500/40 hover:bg-cyan-950/40 transition-all group shadow-lg relative"
-              >
-                <div className="flex flex-col items-center justify-center w-20 flex-shrink-0 border-r border-cyan-900/50 pr-6">
-                  <span className="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
-                    {day}
-                  </span>
-                  <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">
-                    {month}
-                  </span>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold text-gray-100 mb-2 truncate">{ev.subject || 'Untitled Event'}</h3>
-                  <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-cyan-500" />
-                      <span>{ev.time || 'All Day'}</span>
-                    </div>
-                    {ev.location && (
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-purple-400" />
-                        <span className="truncate">{ev.location}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+      <div className="flex flex-col lg:flex-row gap-8 flex-1 overflow-hidden pb-12">
+        <MiniCalendar events={events} />
 
-                {/* Manual Delete Button */}
-                <button
-                  onClick={(e) => openDeleteModal(ev, e)}
-                  className="p-2.5 rounded-xl bg-red-950/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 hover:border-red-400 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
-                  title="Delete Event"
+        <div className="flex-1 overflow-y-auto scrollbar-hide space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center h-40">
+              <RefreshCw className="w-8 h-8 text-cyan-500 animate-spin" />
+            </div>
+          ) : events.length === 0 ? (
+            <div className="text-center text-gray-500 font-mono mt-10 p-12 bg-gray-950/40 rounded-2xl border border-white/5">
+              No upcoming events found in timeline.
+            </div>
+          ) : (
+            events.map((ev, idx) => {
+              const { day, month } = parseEventDate(ev);
+              return (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  key={idx}
+                  className="flex items-center gap-6 p-6 rounded-2xl bg-gray-950/60 backdrop-blur-md border border-cyan-900/30 hover:border-cyan-500/40 hover:bg-cyan-950/40 transition-all group shadow-lg relative"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </motion.div>
-            );
-          })
-        )}
+                  <div className="flex flex-col items-center justify-center w-20 flex-shrink-0 border-r border-cyan-900/50 pr-6">
+                    <span className="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                      {day}
+                    </span>
+                    <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">
+                      {month}
+                    </span>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-gray-100 mb-2 truncate">{ev.subject || 'Untitled Event'}</h3>
+                    <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-cyan-500" />
+                        <span>{ev.time || 'All Day'}</span>
+                      </div>
+                      {ev.location && (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                          <span className="truncate">{ev.location}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Manual Delete Button */}
+                  <button
+                    onClick={(e) => openDeleteModal(ev, e)}
+                    className="p-2.5 rounded-xl bg-red-950/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 hover:border-red-400 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
+                    title="Delete Event"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
