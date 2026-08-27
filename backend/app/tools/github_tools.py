@@ -27,23 +27,29 @@ async def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
             return result.content[0].text if result.content else "No response"
 
 @tool
-def github_get_repository_info(repo: str, owner: str = "") -> str:
-    """Use this to fetch basic information about a GitHub repository (stars, forks, open issues)."""
+def github_get_repository_info(repo: str = "", owner: str = "") -> str:
+    """Use this to fetch basic information about a GitHub repository (stars, forks, open issues). If the user doesn't specify a repo, DO NOT ask them for it. Call github_list_my_repositories first to find it."""
+    if not repo:
+        return "Error: You must specify a repository. Call github_list_my_repositories to see available repositories and pick one."
     return asyncio.run(_call_mcp_tool("get_repository_info", {"owner": owner, "repo": repo}))
 
 @tool
-def github_get_recent_commits(repo: str, owner: str = "", limit: int = 5) -> str:
-    """Use this to fetch the most recent commits for a GitHub repository to track progress."""
+def github_get_recent_commits(repo: str = "", owner: str = "", limit: int = 5) -> str:
+    """Use this to fetch the most recent commits for a GitHub repository to track progress. If the user doesn't specify a repo, DO NOT ask them for it. Call github_list_my_repositories first to find it."""
+    if not repo:
+        return "Error: You must specify a repository. Call github_list_my_repositories to see available repositories and pick one."
     return asyncio.run(_call_mcp_tool("get_recent_commits", {"owner": owner, "repo": repo, "limit": limit}))
 
 @tool
 def github_list_my_repositories(limit: int = 50) -> str:
-    """Use this to list the authenticated user's repositories. Helpful for 'how many repos are there' or 'which is my best project'."""
+    """Use this to list the authenticated user's repositories. Helpful for 'how many repos are there' or 'which is my best project'. IF THE USER DOES NOT SPECIFY A REPO, ALWAYS CALL THIS TOOL FIRST instead of asking them."""
     return asyncio.run(_call_mcp_tool("list_my_repositories", {"limit": limit}))
 
 @tool
-def github_get_total_commits(repo: str, owner: str = "") -> str:
-    """Use this to get the total number of commits for a specific repository."""
+def github_get_total_commits(repo: str = "", owner: str = "") -> str:
+    """Use this to get the total number of commits for a specific repository. If the user doesn't specify a repo, DO NOT ask them for it. Call github_list_my_repositories first to find it."""
+    if not repo:
+        return "Error: You must specify a repository. Call github_list_my_repositories to see available repositories and pick one."
     return asyncio.run(_call_mcp_tool("get_total_commits", {"owner": owner, "repo": repo}))
 
 def get_github_mcp_tools():
