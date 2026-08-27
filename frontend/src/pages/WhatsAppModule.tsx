@@ -120,6 +120,20 @@ export function WhatsAppModule() {
     fetchMessages(chat.id || chat.remoteJid || '');
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/api/whatsapp/logout`, { method: 'DELETE' });
+      setStatus('checking');
+      setQrCode(null);
+      setChats([]);
+      setMessages([]);
+      setActiveChat(null);
+      setTimeout(checkConnection, 2000); // Wait a bit then check connection to get new QR
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-gray-950 p-4 overflow-hidden relative">
       <div className="flex items-center gap-4 mb-4 shrink-0">
@@ -134,9 +148,14 @@ export function WhatsAppModule() {
           <p className="text-cyan-400/60 font-mono text-xs">Evolution API Bridge</p>
         </div>
         {status === 'connected' && (
-          <button onClick={fetchChats} className="ml-auto flex items-center gap-2 text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors">
-            <RefreshCw className="w-3 h-3" /> Refresh Sync
-          </button>
+          <div className="ml-auto flex items-center gap-4">
+            <button onClick={fetchChats} className="flex items-center gap-2 text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors">
+              <RefreshCw className="w-3 h-3" /> Refresh Sync
+            </button>
+            <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-mono text-red-400 hover:text-red-300 transition-colors px-3 py-1.5 border border-red-900/50 rounded-lg bg-red-950/30">
+              Logout
+            </button>
+          </div>
         )}
       </div>
 
@@ -164,12 +183,25 @@ export function WhatsAppModule() {
               
               {status === 'qr_ready' && qrCode && (
                 <div className="flex flex-col items-center gap-4 w-full">
-                  <p className="text-gray-400 font-sans text-sm text-center">
-                    Open WhatsApp on your phone, tap Menu or Settings and select <strong>Linked Devices</strong>. Point your phone to this screen to capture the code.
-                  </p>
-                  <div className="bg-white p-4 rounded-xl shadow-xl w-64 h-64 flex items-center justify-center">
-                    <img src={qrCode} alt="WhatsApp QR Code" className="w-full h-full object-contain" />
-                  </div>
+                  {qrCode.startsWith('data:image') ? (
+                    <>
+                      <p className="text-gray-400 font-sans text-sm text-center">
+                        Open WhatsApp on your phone, tap Menu or Settings and select <strong>Linked Devices</strong>. Point your phone to this screen to capture the code.
+                      </p>
+                      <div className="bg-white p-4 rounded-xl shadow-xl w-64 h-64 flex items-center justify-center">
+                        <img src={qrCode} alt="WhatsApp QR Code" className="w-full h-full object-contain" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-400 font-sans text-sm text-center">
+                        Open WhatsApp on your phone, go to <strong>Linked Devices</strong>, select <strong>Link with phone number instead</strong>, and enter this code:
+                      </p>
+                      <div className="bg-gray-800 p-6 rounded-xl border border-cyan-900/50 flex items-center justify-center">
+                        <span className="text-4xl font-mono font-bold text-cyan-400 tracking-widest">{qrCode}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               
