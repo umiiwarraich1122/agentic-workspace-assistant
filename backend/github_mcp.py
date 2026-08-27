@@ -30,6 +30,10 @@ def get_headers():
 
 @mcp.tool()
 def get_repository_info(repo: str, owner: str = "") -> str:
+    if '/' in repo:
+        parts = repo.split('/')
+        owner = parts[0]
+        repo = parts[1]
     if not owner:
         owner = get_authenticated_user()
     """Fetch basic information about a GitHub repository (stars, forks, open issues)."""
@@ -51,6 +55,10 @@ def get_repository_info(repo: str, owner: str = "") -> str:
 
 @mcp.tool()
 def get_recent_commits(repo: str, owner: str = "", limit: int = 5) -> str:
+    if '/' in repo:
+        parts = repo.split('/')
+        owner = parts[0]
+        repo = parts[1]
     if not owner:
         owner = get_authenticated_user()
     """Fetch the most recent commits for a GitHub repository."""
@@ -90,6 +98,10 @@ def list_my_repositories(limit: int = 50) -> str:
 
 @mcp.tool()
 def get_total_commits(repo: str, owner: str = "") -> str:
+    if '/' in repo:
+        parts = repo.split('/')
+        owner = parts[0]
+        repo = parts[1]
     if not owner:
         owner = get_authenticated_user()
     """Get the total number of commits for a specific repository. Helpful for 'how many commits on a specific project'."""
