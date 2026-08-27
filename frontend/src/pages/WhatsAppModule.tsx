@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, QrCode, Send, RefreshCw, User, Phone, Check, CheckCheck, ArrowLeft, Wand2 } from 'lucide-react';
+import { MessageCircle, QrCode, Send, RefreshCw, User, Phone, CheckCheck, ArrowLeft, Wand2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -112,6 +112,7 @@ export function WhatsAppModule() {
       }
     }, 5000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, activeChat]);
 
   // Select chat handler
