@@ -8,7 +8,6 @@ import { CommandCenter } from './pages/CommandCenter';
 import { EmailModule } from './pages/EmailModule';
 import { CalendarModule } from './pages/CalendarModule';
 import { TasksModule } from './pages/TasksModule';
-import { WhatsAppModule } from './pages/WhatsAppModule';
 import { PantryModule } from './pages/PantryModule';
 import { GithubModule } from './pages/GithubModule';
 import { VoiceWorld } from './pages/VoiceWorld';
@@ -111,7 +110,6 @@ function App() {
               <Route path="emails" element={<EmailModule />} />
               <Route path="calendar" element={<CalendarModule />} />
               <Route path="tasks" element={<TasksModule />} />
-              <Route path="whatsapp" element={<WhatsAppModule />} />
               <Route path="pantry" element={<PantryModule />} />
               <Route path="github" element={<GithubModule />} />
             </Route>

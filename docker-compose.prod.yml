@@ -65,41 +65,7 @@ services:
     depends_on:
       - backend-api
 
-  # -- Database for Evolution API -------------------------
-  evolution-postgres:
-    image: postgres:15-alpine
-    container_name: evolution-postgres
-    environment:
-      - POSTGRES_USER=evo_user
-      - POSTGRES_PASSWORD=evo_pass
-      - POSTGRES_DB=evolution_db
-    volumes:
-      - evolution_db_data:/var/lib/postgresql/data
-    restart: always
-
-  # -- WhatsApp Gateway (Evolution API) -------------------------
-  evolution-api:
-    image: evoapicloud/evolution-api:latest
-    container_name: evolution-api
-    ports:
-      - "8080:8080"
-    volumes:
-      - evolution_instances:/evolution/instances
-    environment:
-      - SERVER_URL=http://localhost:8080
-      - AUTHENTICATION_TYPE=apikey
-      - AUTHENTICATION_API_KEY=jarvis_secure_key_123
-      - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://evo_user:evo_pass@evolution-postgres:5432/evolution_db?schema=public
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution_api
-      - CACHE_REDIS_ENABLED=false
-    depends_on:
-      - evolution-postgres
-    restart: always
-
 volumes:
   jarvis_tokens:
   caddy_data:
   caddy_config:
-  evolution_instances:
-  evolution_db_data:
