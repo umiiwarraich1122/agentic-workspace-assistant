@@ -12,6 +12,7 @@ from app.tools.map_tool import get_map_tools
 from app.tools.document_tool import get_document_tools
 from app.tools.pantry_tools import get_pantry_tools
 from app.tools.github_tools import get_github_mcp_tools
+from app.tools.spotify_tools import get_spotify_tools
 from app.agent.evaluator import evaluate_tool_results
 from app.config import settings
 from langgraph.prebuilt import ToolNode
@@ -34,7 +35,8 @@ def build_graph(access_token: str, user_id: str, local_time: str = None, timezon
         *get_map_tools(),
         *get_document_tools(),
         *get_pantry_tools(user_id),
-        *get_github_mcp_tools()
+        *get_github_mcp_tools(),
+        *get_spotify_tools()
     ]
     
     # Model selection logic:

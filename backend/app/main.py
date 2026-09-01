@@ -26,7 +26,7 @@ app.add_middleware(
 async def health_check():
     return {"status": "ok", "app": "Jarvis AI Assistant"}
 
-from app.api import auth, emails, calendar, todos, chat, livekit_api, notifications, bridge, pantry, github
+from app.api import auth, emails, calendar, todos, chat, livekit_api, notifications, bridge, pantry, github, spotify
 
 app.include_router(auth.router)
 app.include_router(emails.router)
