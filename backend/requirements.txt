@@ -25,5 +25,3 @@ langchain-huggingface
 langchain-community
 langchain-groq
 mcp==1.2.1
-spotipy==2.24.0
-spotipy==2.24.0

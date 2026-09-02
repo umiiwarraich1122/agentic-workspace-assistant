@@ -12,6 +12,7 @@ services:
       - ./backend/.env
     volumes:
       - jarvis_tokens:/app/tokens_db.json
+      - shared_data:/app/shared
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     restart: always
     dns:
@@ -34,6 +35,7 @@ services:
       - ./backend/.env
     volumes:
       - jarvis_tokens:/app/tokens_db.json
+      - shared_data:/app/shared
     command: python -m livekit_agent.agent start
     restart: always
     dns:
@@ -67,5 +69,6 @@ services:
 
 volumes:
   jarvis_tokens:
+  shared_data:
   caddy_data:
   caddy_config:

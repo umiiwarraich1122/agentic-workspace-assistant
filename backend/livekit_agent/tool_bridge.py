@@ -7,12 +7,14 @@ from app.tools.todo_tools import get_todo_tools
 from app.tools.web_tools import get_latest_news
 from app.tools.pc_tools import get_pc_tools
 from app.tools.reminder_tools import get_reminder_tools
+from app.tools.youtube_tools import get_youtube_tools
 
 class JarvisToolBridge(llm.ToolContext):
     def __init__(self, access_token: str, user_id: str):
         super().__init__([])
         self.access_token = access_token
         self.user_id = user_id
+        self.session = None # Will be set by agent.py
         
         # Instantiate the LangChain tools
         mail_tools = get_mail_tools(access_token, user_id)
@@ -20,9 +22,10 @@ class JarvisToolBridge(llm.ToolContext):
         todo_tools = get_todo_tools(access_token, user_id)
         pc_tools = get_pc_tools()
         reminder_tools = get_reminder_tools(access_token)
+        youtube_tools = get_youtube_tools()
         
         # Map them by name
-        self.lc_tools = {t.name: t for t in mail_tools + calendar_tools + todo_tools + pc_tools + reminder_tools}
+        self.lc_tools = {t.name: t for t in mail_tools + calendar_tools + todo_tools + pc_tools + reminder_tools + youtube_tools}
         self.lc_tools['get_latest_news'] = get_latest_news
         
     def _get_random_filler(self) -> str:
