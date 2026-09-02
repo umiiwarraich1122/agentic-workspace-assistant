@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import YouTube, { YouTubeEvent, YouTubeProps } from 'react-youtube';
+import YouTube from 'react-youtube';
 import { Play, Pause, SkipForward, Music } from 'lucide-react';
 import { BACKEND_URL } from '../services/api';
 
@@ -36,7 +36,7 @@ export function YoutubeModule() {
     return () => clearInterval(interval);
   }, []);
 
-  const onPlayerReady = (event: YouTubeEvent) => {
+  const onPlayerReady = (event: any) => {
     playerRef.current = event.target;
     if (status?.playing) {
         event.target.playVideo();
@@ -66,7 +66,7 @@ export function YoutubeModule() {
     }
   };
 
-  const opts: YouTubeProps['opts'] = {
+  const opts: any = {
     height: '0',
     width: '0',
     playerVars: {
