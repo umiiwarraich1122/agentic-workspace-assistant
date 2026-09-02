@@ -45,6 +45,10 @@ export function YoutubeModule() {
 
   const onPlayerReady = (event: any) => {
     playerRef.current = event.target;
+    // Explicitly unmute and set volume to max to bypass hidden iframe restrictions
+    event.target.unMute();
+    event.target.setVolume(100);
+    
     if (status?.playing) {
         event.target.playVideo();
     }
@@ -95,11 +99,12 @@ export function YoutubeModule() {
   };
 
   const opts: any = {
-    height: '1',
-    width: '1',
+    height: '240',
+    width: '320',
     playerVars: {
       autoplay: 1,
       controls: 0,
+      origin: window.location.origin
     },
   };
 
@@ -120,9 +125,9 @@ export function YoutubeModule() {
         <div className="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-red-500/10 rounded-full blur-3xl mix-blend-screen" />
       </div>
 
-      {/* Hidden YouTube Player */}
+      {/* Hidden YouTube Player (Behind everything but standard size to bypass YouTube anti-hidden checks) */}
       {status?.video_id && (
-        <div className="opacity-0 absolute pointer-events-none w-0 h-0">
+        <div className="absolute top-0 left-0 w-[320px] h-[240px] z-[-1] opacity-0 pointer-events-none overflow-hidden">
             <YouTube 
                 videoId={status.video_id} 
                 opts={opts} 
