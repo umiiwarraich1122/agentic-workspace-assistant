@@ -3,6 +3,13 @@ import YouTube from 'react-youtube';
 import { Play, Pause, SkipForward, Music } from 'lucide-react';
 import { BACKEND_URL } from '../services/api';
 
+const TRENDING_SONGS = [
+  { id: "jfKfPfyJRdk", title: "Lofi Girl - beats to relax/study to", thumb: "https://img.youtube.com/vi/jfKfPfyJRdk/hqdefault.jpg" },
+  { id: "4xDzrIxZZNc", title: "The Weeknd - Blinding Lights", thumb: "https://img.youtube.com/vi/4xDzrIxZZNc/hqdefault.jpg" },
+  { id: "bTqVqk7FSmY", title: "Sped Up & Reverb Hits", thumb: "https://img.youtube.com/vi/bTqVqk7FSmY/hqdefault.jpg" },
+  { id: "5qap5aO4i9A", title: "Lofi Hip Hop Mix", thumb: "https://img.youtube.com/vi/5qap5aO4i9A/hqdefault.jpg" }
+];
+
 export function YoutubeModule() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +73,27 @@ export function YoutubeModule() {
     }
   };
 
+  const playTrending = async (song: typeof TRENDING_SONGS[0]) => {
+    const newState = {
+      video_id: song.id,
+      title: song.title,
+      thumbnail: song.thumb,
+      playing: true
+    };
+    
+    setStatus((prev: any) => ({ ...prev, ...newState }));
+    
+    try {
+      await fetch(`${BACKEND_URL}/api/youtube/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newState)
+      });
+    } catch (e) {
+      console.error("Failed to play trending", e);
+    }
+  };
+
   const opts: any = {
     height: '0',
     width: '0',
@@ -99,7 +127,7 @@ export function YoutubeModule() {
         </div>
       )}
 
-      <div className="relative z-10">
+      <div className="relative z-10 h-full overflow-y-auto no-scrollbar pb-20">
         <header className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold font-mono text-red-500 tracking-wider flex items-center gap-2">
@@ -109,7 +137,7 @@ export function YoutubeModule() {
           </div>
         </header>
 
-        <div className="max-w-md w-full mx-auto mt-12 border border-red-500/30 bg-black/60 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
+        <div className="max-w-md w-full mx-auto mt-6 border border-red-500/30 bg-black/60 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
           {status?.video_id ? (
             <div className="flex flex-col items-center">
               <div className="relative w-48 h-48 mb-6 group rounded-lg overflow-hidden shadow-2xl">
@@ -148,6 +176,32 @@ export function YoutubeModule() {
               <p className="text-sm text-red-400/30 text-center mt-2">Ask Jarvis to play a song!</p>
             </div>
           )}
+        </div>
+
+        {/* Trending Section */}
+        <div className="max-w-2xl w-full mx-auto mt-12">
+          <h3 className="text-lg font-mono text-red-400 mb-4 flex items-center gap-2">
+            <Play className="w-4 h-4" /> TRENDING MIXES
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {TRENDING_SONGS.map((song) => (
+              <div 
+                key={song.id}
+                onClick={() => playTrending(song)}
+                className="group flex items-center gap-4 p-3 rounded-xl border border-red-500/10 bg-red-500/5 hover:bg-red-500/10 hover:border-red-500/30 transition-all cursor-pointer"
+              >
+                <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0">
+                  <img src={song.thumb} alt={song.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Play className="w-6 h-6 text-white fill-white" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-red-100 line-clamp-2 group-hover:text-red-400 transition-colors">{song.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
