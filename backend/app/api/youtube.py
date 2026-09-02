@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/youtube", tags=["youtube"])
 
-STATE_FILE = "/app/shared/youtube_state.json" if os.environ.get("DOCKER_ENV") else "youtube_state.json"
+STATE_FILE = "/app/shared/youtube_state.json" if os.path.exists("/app/shared") else "youtube_state.json"
 
 class PlayerState(BaseModel):
     video_id: Optional[str] = None

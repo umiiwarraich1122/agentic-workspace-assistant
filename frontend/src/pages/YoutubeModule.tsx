@@ -95,8 +95,8 @@ export function YoutubeModule() {
   };
 
   const opts: any = {
-    height: '0',
-    width: '0',
+    height: '1',
+    width: '1',
     playerVars: {
       autoplay: 1,
       controls: 0,
@@ -122,8 +122,13 @@ export function YoutubeModule() {
 
       {/* Hidden YouTube Player */}
       {status?.video_id && (
-        <div className="hidden">
-            <YouTube videoId={status.video_id} opts={opts} onReady={onPlayerReady} />
+        <div className="opacity-0 absolute pointer-events-none w-0 h-0">
+            <YouTube 
+                videoId={status.video_id} 
+                opts={opts} 
+                onReady={onPlayerReady} 
+                iframeClassName="youtube-iframe"
+            />
         </div>
       )}
 
