@@ -110,6 +110,18 @@ export function SpotifyModule() {
                   </div>
                 </div>
               </div>
+            ) : status.error ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Music className="w-12 h-12 text-red-500/50 mb-4" />
+                <p className="text-red-400/80 text-center font-mono">Connection Error</p>
+                <p className="text-sm text-red-400/50 text-center mt-2 px-4">{status.error}</p>
+                <button
+                  onClick={handleLogin}
+                  className="mt-6 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/50 text-red-400 font-mono text-sm uppercase tracking-wider rounded transition-all"
+                >
+                  Reconnect
+                </button>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12">
                 <Music className="w-12 h-12 text-green-500/30 mb-4" />
