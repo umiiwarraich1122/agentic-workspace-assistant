@@ -52,19 +52,19 @@ async def callback(request: Request, code: str = None, error: str = None):
         frontend_url = "http://localhost:5173"
         
     if error:
-        return RedirectResponse(f"{frontend_url}/spotify?error={error}")
+        return RedirectResponse(f"{frontend_url}/chat/spotify?error={error}")
     
     if not code:
-        return RedirectResponse(f"{frontend_url}/spotify?error=no_code")
+        return RedirectResponse(f"{frontend_url}/chat/spotify?error=no_code")
         
     sp_oauth = get_spotify_oauth(request)
     try:
         token_info = sp_oauth.get_access_token(code)
         # Token is automatically cached by spotipy in cache_path
-        return RedirectResponse(f"{frontend_url}/spotify?success=true")
+        return RedirectResponse(f"{frontend_url}/chat/spotify?success=true")
     except Exception as e:
         logger.error(f"Spotify token error: {e}")
-        return RedirectResponse(f"{frontend_url}/spotify?error=auth_failed")
+        return RedirectResponse(f"{frontend_url}/chat/spotify?error=auth_failed")
 
 @router.get("/status")
 async def get_status():
