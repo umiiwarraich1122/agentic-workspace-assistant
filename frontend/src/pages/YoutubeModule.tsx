@@ -112,12 +112,13 @@ export function YoutubeModule() {
   };
 
   const opts: any = {
-    height: '240',
-    width: '320',
+    height: '192',
+    width: '192',
     playerVars: {
       autoplay: 0,
       controls: 0,
-      origin: window.location.origin
+      origin: window.location.origin,
+      modestbranding: 1
     },
   };
 
@@ -138,17 +139,6 @@ export function YoutubeModule() {
         <div className="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-red-500/10 rounded-full blur-3xl mix-blend-screen" />
       </div>
 
-      {/* Hidden YouTube Player (Behind everything but standard size to bypass YouTube anti-hidden checks) */}
-      <div className="absolute top-0 left-0 w-[320px] h-[240px] z-[-1] pointer-events-none overflow-hidden">
-          <YouTube 
-              videoId={status?.video_id || "jfKfPfyJRdk"} 
-              opts={opts} 
-              onReady={onPlayerReady} 
-              iframeClassName="youtube-iframe"
-          />
-          <div className="absolute inset-0 bg-black"></div>
-      </div>
-
       <div className="relative z-10 h-full overflow-y-auto no-scrollbar pb-20">
         <header className="mb-8 flex items-center justify-between">
           <div>
@@ -162,14 +152,13 @@ export function YoutubeModule() {
         <div className="max-w-md w-full mx-auto mt-6 border border-red-500/30 bg-black/60 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
           {status?.video_id ? (
             <div className="flex flex-col items-center">
-              <div className="relative w-48 h-48 mb-6 group rounded-lg overflow-hidden shadow-2xl">
-                {status.thumbnail ? (
-                  <img src={status.thumbnail} alt="Thumbnail Art" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-red-900/20 flex items-center justify-center">
-                    <Music className="w-12 h-12 text-red-500/50" />
-                  </div>
-                )}
+              <div className="relative w-48 h-48 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black pointer-events-none">
+                <YouTube 
+                    videoId={status.video_id} 
+                    opts={opts} 
+                    onReady={onPlayerReady} 
+                    iframeClassName="w-full h-full object-cover scale-150"
+                />
                 {status.playing && (
                   <div className="absolute inset-0 bg-red-500/10 mix-blend-overlay pointer-events-none animate-pulse" />
                 )}
