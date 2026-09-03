@@ -115,7 +115,7 @@ export function YoutubeModule() {
     height: '256',
     width: '256',
     playerVars: {
-      autoplay: 1,
+      autoplay: 0,
       controls: 1,
       origin: window.location.origin,
       modestbranding: 1
@@ -150,23 +150,32 @@ export function YoutubeModule() {
         </header>
 
         <div className="max-w-md w-full mx-auto mt-6 border border-red-500/30 bg-black/60 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
-          {status?.video_id ? (
-            <div className="flex flex-col items-center">
-              <div className="relative w-64 h-64 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black">
-                <YouTube 
-                    videoId={status.video_id} 
-                    opts={opts} 
-                    onReady={onPlayerReady} 
-                    iframeClassName="w-full h-full"
-                />
-                {status.playing && (
-                  <div className="absolute inset-0 bg-red-500/10 mix-blend-overlay pointer-events-none animate-pulse" />
-                )}
-              </div>
-              
-              <h2 className="text-xl font-bold text-white text-center mb-1 line-clamp-2">{status.title}</h2>
-              <p className="text-red-400/70 text-center mb-6 line-clamp-1">YouTube Audio</p>
-              
+          <div className="flex flex-col items-center">
+            <div className="relative w-64 h-64 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black">
+              <YouTube 
+                  videoId={status?.video_id || "rFZHOHl-L8A"} 
+                  opts={opts} 
+                  onReady={onPlayerReady} 
+                  iframeClassName="w-full h-full"
+              />
+              {!status?.video_id && (
+                <div className="absolute inset-0 bg-black flex items-center justify-center z-10">
+                  <Music className="w-12 h-12 text-red-500/50" />
+                </div>
+              )}
+              {status?.playing && (
+                <div className="absolute inset-0 bg-red-500/10 mix-blend-overlay pointer-events-none animate-pulse" />
+              )}
+            </div>
+            
+            <h2 className="text-xl font-bold text-white text-center mb-1 line-clamp-2">
+              {status?.video_id ? status.title : "No active playback"}
+            </h2>
+            <p className="text-red-400/70 text-center mb-6 line-clamp-1">
+              {status?.video_id ? "YouTube Audio" : "Ask Jarvis to play a song!"}
+            </p>
+            
+            {status?.video_id && (
               <div className="flex items-center gap-6">
                 <div 
                   onClick={togglePlay}
@@ -179,14 +188,8 @@ export function YoutubeModule() {
                   )}
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Music className="w-12 h-12 text-red-500/30 mb-4" />
-              <p className="text-red-400/50 text-center font-mono">No active playback</p>
-              <p className="text-sm text-red-400/30 text-center mt-2">Ask Jarvis to play a song!</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Trending Section */}
