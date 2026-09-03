@@ -4,10 +4,10 @@ import { Play, Pause, SkipForward, Music } from 'lucide-react';
 import { BACKEND_URL } from '../services/api';
 
 const TRENDING_SONGS = [
-  { id: "jfKfPfyJRdk", title: "Lofi Girl - beats to relax/study to", thumb: "https://img.youtube.com/vi/jfKfPfyJRdk/hqdefault.jpg" },
-  { id: "4xDzrIxZZNc", title: "The Weeknd - Blinding Lights", thumb: "https://img.youtube.com/vi/4xDzrIxZZNc/hqdefault.jpg" },
-  { id: "bTqVqk7FSmY", title: "Sped Up & Reverb Hits", thumb: "https://img.youtube.com/vi/bTqVqk7FSmY/hqdefault.jpg" },
-  { id: "5qap5aO4i9A", title: "Lofi Hip Hop Mix", thumb: "https://img.youtube.com/vi/5qap5aO4i9A/hqdefault.jpg" }
+  { id: "rFZHOHl-L8A", title: "Lofi Girl - beats to relax/study to", thumb: "https://img.youtube.com/vi/rFZHOHl-L8A/hqdefault.jpg" },
+  { id: "4NRXx6U8ABQ", title: "The Weeknd - Blinding Lights", thumb: "https://img.youtube.com/vi/4NRXx6U8ABQ/hqdefault.jpg" },
+  { id: "NBlu6RGmh1s", title: "Sped Up & Reverb Hits", thumb: "https://img.youtube.com/vi/NBlu6RGmh1s/hqdefault.jpg" },
+  { id: "n61ULEU7CO0", title: "Lofi Hip Hop Mix", thumb: "https://img.youtube.com/vi/n61ULEU7CO0/hqdefault.jpg" }
 ];
 
 export function YoutubeModule() {
