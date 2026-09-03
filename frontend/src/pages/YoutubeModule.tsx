@@ -55,8 +55,17 @@ export function YoutubeModule() {
     event.target.unMute();
     event.target.setVolume(100);
     
-    // Fetch latest status immediately to sync the player state
-    fetchStatus();
+    // Apply the currently loaded status immediately. 
+    // We cannot use fetchStatus() here because the action_id hasn't changed since the initial mount fetch, 
+    // so fetchStatus would ignore it!
+    setStatus((prev: any) => {
+        if (prev?.video_id) {
+            event.target.loadVideoById(prev.video_id);
+            if (prev.playing) event.target.playVideo();
+            else event.target.pauseVideo();
+        }
+        return prev;
+    });
   };
 
   const togglePlay = async () => {
