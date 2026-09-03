@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import YouTube from 'react-youtube';
-import { Play, Pause, SkipForward, Music } from 'lucide-react';
+import { Play, Pause, SkipForward, Music, Search, Loader2 } from 'lucide-react';
 import { BACKEND_URL } from '../services/api';
 
 const TRENDING_SONGS = [
@@ -13,6 +13,9 @@ const TRENDING_SONGS = [
 export function YoutubeModule() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const playerRef = useRef<any>(null);
 
   const fetchStatus = async () => {
@@ -78,6 +81,24 @@ export function YoutubeModule() {
       console.error("Failed to update status", e);
     }
   };
+
+    const handleSearch = async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      if (!searchQuery.trim()) return;
+      
+      setIsSearching(true);
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/youtube/search?q=${encodeURIComponent(searchQuery)}`);
+        const data = await res.json();
+        if (data.results) {
+          setSearchResults(data.results);
+        }
+      } catch (e) {
+        console.error("Search failed", e);
+      } finally {
+        setIsSearching(false);
+      }
+    };
 
   const playTrending = async (song: typeof TRENDING_SONGS[0]) => {
     const newState = {
@@ -211,6 +232,51 @@ export function YoutubeModule() {
                 </div>
               </div>
             ))}
+          </div>
+          {/* Search Section */}
+          <div className="max-w-3xl mx-auto mt-12 mb-8">
+            <h3 className="text-red-500 font-mono text-sm tracking-widest flex items-center gap-2 mb-6 border-b border-red-500/20 pb-2">
+              <Search className="w-4 h-4" /> SEARCH MUSIC
+            </h3>
+            
+            <form onSubmit={handleSearch} className="flex gap-4 mb-8">
+              <input 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for any song or artist..."
+                className="flex-1 bg-black/40 border border-red-500/20 rounded-xl px-4 py-3 text-red-100 placeholder-red-900/50 focus:outline-none focus:border-red-500/50"
+              />
+              <button 
+                type="submit"
+                disabled={isSearching || !searchQuery.trim()}
+                className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-6 py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center min-w-[120px]"
+              >
+                {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : "Search"}
+              </button>
+            </form>
+
+            {searchResults.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {searchResults.map((song) => (
+                  <div 
+                    key={song.id}
+                    onClick={() => playTrending(song)}
+                    className="group flex items-center gap-4 p-3 rounded-xl border border-red-500/10 bg-red-500/5 hover:bg-red-500/10 hover:border-red-500/30 transition-all cursor-pointer"
+                  >
+                    <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0">
+                      <img src={song.thumb} alt={song.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Play className="w-6 h-6 text-white fill-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-red-100 line-clamp-2 group-hover:text-red-400 transition-colors" dangerouslySetInnerHTML={{ __html: song.title }}></p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

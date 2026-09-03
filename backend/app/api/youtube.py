@@ -54,3 +54,39 @@ async def update_status(new_state: PlayerState):
     state["action_id"] += 1
     save_state(state)
     return state
+
+import httpx
+
+@router.get("/search")
+async def search_youtube(q: str):
+    """Search YouTube for a query and return top results"""
+    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+    if not YOUTUBE_API_KEY:
+        return {"error": "API Key missing"}
+        
+    url = "https://www.googleapis.com/youtube/v3/search"
+    params = {
+        "part": "snippet",
+        "maxResults": 8,
+        "q": q,
+        "type": "video",
+        "key": YOUTUBE_API_KEY
+    }
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            results = []
+            for item in data.get("items", []):
+                results.append({
+                    "id": item["id"]["videoId"],
+                    "title": item["snippet"]["title"],
+                    "thumb": item["snippet"]["thumbnails"]["high"]["url"]
+                })
+            return {"results": results}
+        except Exception as e:
+            logger.error(f"Search error: {e}")
+            return {"error": str(e)}
