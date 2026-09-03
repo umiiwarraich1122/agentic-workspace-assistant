@@ -112,8 +112,8 @@ export function YoutubeModule() {
   };
 
   const opts: any = {
-    height: '192',
-    width: '192',
+    height: '256',
+    width: '256',
     playerVars: {
       autoplay: 1,
       controls: 1,
@@ -152,7 +152,7 @@ export function YoutubeModule() {
         <div className="max-w-md w-full mx-auto mt-6 border border-red-500/30 bg-black/60 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
           {status?.video_id ? (
             <div className="flex flex-col items-center">
-              <div className="relative w-48 h-48 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black">
+              <div className="relative w-64 h-64 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black">
                 <YouTube 
                     videoId={status.video_id} 
                     opts={opts} 
