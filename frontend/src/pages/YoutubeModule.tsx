@@ -19,9 +19,12 @@ export function YoutubeModule() {
     try {
       const res = await fetch(`${BACKEND_URL}/api/youtube/status`);
       const data = await res.json();
-      setStatus(prev => {
-        // If action_id changed, we might need to force play/pause
+      setStatus((prev: any) => {
+        // If action_id changed, force update
         if (playerRef.current && data.action_id !== prev?.action_id) {
+            if (data.video_id && playerRef.current.getVideoData?.()?.video_id !== data.video_id) {
+                playerRef.current.loadVideoById(data.video_id);
+            }
             if (data.playing) {
                 playerRef.current.playVideo();
             } else {
@@ -49,7 +52,10 @@ export function YoutubeModule() {
     event.target.unMute();
     event.target.setVolume(100);
     
-    if (status?.playing) {
+    if (status?.playing && status?.video_id) {
+        if (event.target.getVideoData?.()?.video_id !== status.video_id) {
+            event.target.loadVideoById(status.video_id);
+        }
         event.target.playVideo();
     }
   };
@@ -87,6 +93,13 @@ export function YoutubeModule() {
     
     setStatus((prev: any) => ({ ...prev, ...newState }));
     
+    if (playerRef.current) {
+        playerRef.current.unMute();
+        playerRef.current.setVolume(100);
+        playerRef.current.loadVideoById(song.id);
+        playerRef.current.playVideo();
+    }
+    
     try {
       await fetch(`${BACKEND_URL}/api/youtube/update`, {
         method: 'POST',
@@ -102,7 +115,7 @@ export function YoutubeModule() {
     height: '240',
     width: '320',
     playerVars: {
-      autoplay: 1,
+      autoplay: 0,
       controls: 0,
       origin: window.location.origin
     },
@@ -126,16 +139,15 @@ export function YoutubeModule() {
       </div>
 
       {/* Hidden YouTube Player (Behind everything but standard size to bypass YouTube anti-hidden checks) */}
-      {status?.video_id && (
-        <div className="absolute top-0 left-0 w-[320px] h-[240px] z-[-1] opacity-0 pointer-events-none overflow-hidden">
-            <YouTube 
-                videoId={status.video_id} 
-                opts={opts} 
-                onReady={onPlayerReady} 
-                iframeClassName="youtube-iframe"
-            />
-        </div>
-      )}
+      <div className="absolute top-0 left-0 w-[320px] h-[240px] z-[-1] pointer-events-none overflow-hidden">
+          <YouTube 
+              videoId={status?.video_id || "jfKfPfyJRdk"} 
+              opts={opts} 
+              onReady={onPlayerReady} 
+              iframeClassName="youtube-iframe"
+          />
+          <div className="absolute inset-0 bg-black"></div>
+      </div>
 
       <div className="relative z-10 h-full overflow-y-auto no-scrollbar pb-20">
         <header className="mb-8 flex items-center justify-between">
