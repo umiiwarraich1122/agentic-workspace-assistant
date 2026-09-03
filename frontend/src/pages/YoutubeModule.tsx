@@ -52,12 +52,8 @@ export function YoutubeModule() {
     event.target.unMute();
     event.target.setVolume(100);
     
-    if (status?.playing && status?.video_id) {
-        if (event.target.getVideoData?.()?.video_id !== status.video_id) {
-            event.target.loadVideoById(status.video_id);
-        }
-        event.target.playVideo();
-    }
+    // Fetch latest status immediately to sync the player state
+    fetchStatus();
   };
 
   const togglePlay = async () => {
@@ -153,7 +149,7 @@ export function YoutubeModule() {
           <div className="flex flex-col items-center">
             <div className="relative w-64 h-64 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black">
               <YouTube 
-                  videoId={status?.video_id || "rFZHOHl-L8A"} 
+                  videoId="rFZHOHl-L8A"
                   opts={opts} 
                   onReady={onPlayerReady} 
                   iframeClassName="w-full h-full"
