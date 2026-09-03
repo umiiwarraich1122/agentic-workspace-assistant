@@ -20,7 +20,7 @@ export function YoutubeModule() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/youtube/status`);
+      const res = await fetch(`${BACKEND_URL}/api/youtube/status?t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       setStatus((prev: any) => {
         // If action_id changed, force update
