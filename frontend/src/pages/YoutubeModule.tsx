@@ -115,8 +115,8 @@ export function YoutubeModule() {
     height: '192',
     width: '192',
     playerVars: {
-      autoplay: 0,
-      controls: 0,
+      autoplay: 1,
+      controls: 1,
       origin: window.location.origin,
       modestbranding: 1
     },
@@ -152,12 +152,12 @@ export function YoutubeModule() {
         <div className="max-w-md w-full mx-auto mt-6 border border-red-500/30 bg-black/60 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
           {status?.video_id ? (
             <div className="flex flex-col items-center">
-              <div className="relative w-48 h-48 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black pointer-events-none">
+              <div className="relative w-48 h-48 mb-6 group rounded-lg overflow-hidden shadow-2xl bg-black">
                 <YouTube 
                     videoId={status.video_id} 
                     opts={opts} 
                     onReady={onPlayerReady} 
-                    iframeClassName="w-full h-full object-cover scale-150"
+                    iframeClassName="w-full h-full"
                 />
                 {status.playing && (
                   <div className="absolute inset-0 bg-red-500/10 mix-blend-overlay pointer-events-none animate-pulse" />
