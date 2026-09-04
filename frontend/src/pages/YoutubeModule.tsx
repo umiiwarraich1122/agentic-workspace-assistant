@@ -10,6 +10,19 @@ const TRENDING_SONGS = [
   { id: "n61ULEU7CO0", title: "Lofi Hip Hop Mix", thumb: "https://img.youtube.com/vi/n61ULEU7CO0/hqdefault.jpg" }
 ];
 
+const INDIAN_HITS = [
+  { id: "hxMNYkLN7tI", title: "Aaj Ki Raat - Full Song | Stree 2", thumb: "https://i.ytimg.com/vi/hxMNYkLN7tI/hqdefault.jpg" },
+  { id: "GgmFC8y8q3k", title: "So High | Sidhu Moose Wala ft. BYG BYRD", thumb: "https://i.ytimg.com/vi/GgmFC8y8q3k/hqdefault.jpg" },
+  { id: "VAdGW7QCVpM", title: "Chaleya | Jawan | Shah Rukh Khan", thumb: "https://i.ytimg.com/vi/VAdGW7QCVpM/hqdefault.jpg" },
+  { id: "TRa9IMvccjg", title: "DILBAR Full Song | Satyameva Jayate", thumb: "https://i.ytimg.com/vi/TRa9IMvccjg/hqdefault.jpg" },
+  { id: "bKZTnnFU9HA", title: "Kuch Kuch Hota Hai: Title Track", thumb: "https://i.ytimg.com/vi/bKZTnnFU9HA/hqdefault.jpg" },
+  { id: "LElOSR7cJyM", title: "Top 20 Bollywood Romance Hits", thumb: "https://i.ytimg.com/vi/LElOSR7cJyM/hqdefault.jpg" },
+  { id: "D2AzqA5emWk", title: "Trending Songs 2026 | Best Hindi Love Songs", thumb: "https://i.ytimg.com/vi/D2AzqA5emWk/hqdefault.jpg" },
+  { id: "I0b88L53Gbg", title: "Best Of Bollywood Dance Hits", thumb: "https://i.ytimg.com/vi/I0b88L53Gbg/hqdefault.jpg" },
+  { id: "ThFEPB24gl8", title: "Bollywood New Hit Songs", thumb: "https://i.ytimg.com/vi/ThFEPB24gl8/hqdefault.jpg" },
+  { id: "zeVWTY31Vn8", title: "Top 30 Romantic Hindi Songs", thumb: "https://i.ytimg.com/vi/zeVWTY31Vn8/hqdefault.jpg" }
+];
+
 export function YoutubeModule() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -281,18 +294,45 @@ export function YoutubeModule() {
                 placeholder="Search for any song or artist..."
                 className="flex-1 bg-black/40 border border-red-500/20 rounded-xl px-4 py-3 text-red-100 placeholder-red-900/50 focus:outline-none focus:border-red-500/50"
               />
-              <button 
-                type="submit"
-                disabled={isSearching || !searchQuery.trim()}
-                className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-6 py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center min-w-[120px]"
-              >
-                {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : "Search"}
-              </button>
-            </form>
+                <button 
+                  type="submit"
+                  disabled={isSearching || !searchQuery.trim()}
+                  className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-6 py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center min-w-[120px]"
+                >
+                  {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : "Search"}
+                </button>
+              </form>
 
-            {searchResults.length > 0 && (
+              {searchResults.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  {searchResults.map((song) => (
+                    <div 
+                      key={song.id}
+                      onClick={() => playTrending(song)}
+                      className="group flex items-center gap-4 p-3 rounded-xl border border-red-500/10 bg-red-500/5 hover:bg-red-500/10 hover:border-red-500/30 transition-all cursor-pointer"
+                    >
+                      <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0">
+                        <img src={song.thumb} alt={song.title} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Play className="w-6 h-6 text-white fill-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-red-100 line-clamp-2 group-hover:text-red-400 transition-colors" dangerouslySetInnerHTML={{ __html: song.title }}></p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Indian Hits Section */}
+            <div className="max-w-3xl mx-auto mt-12 mb-8">
+              <h3 className="text-red-500 font-mono text-sm tracking-widest flex items-center gap-2 mb-6 border-b border-red-500/20 pb-2">
+                <Music className="w-4 h-4" /> TOP INDIAN HITS
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {searchResults.map((song) => (
+                {INDIAN_HITS.map((song) => (
                   <div 
                     key={song.id}
                     onClick={() => playTrending(song)}
@@ -305,15 +345,14 @@ export function YoutubeModule() {
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-red-100 line-clamp-2 group-hover:text-red-400 transition-colors" dangerouslySetInnerHTML={{ __html: song.title }}></p>
+                      <p className="text-sm font-semibold text-red-100 line-clamp-2 group-hover:text-red-400 transition-colors">{song.title}</p>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
