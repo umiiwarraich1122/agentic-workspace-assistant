@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import YouTube from 'react-youtube';
-import { Play, Pause, SkipForward, Music, Search, Loader2 } from 'lucide-react';
+import { Play, Pause, SkipForward, Music, Search, Loader2, Volume2 } from 'lucide-react';
 import { BACKEND_URL } from '../services/api';
 
 const TRENDING_SONGS = [
@@ -16,6 +16,7 @@ export function YoutubeModule() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [volume, setVolume] = useState(100);
   const playerRef = useRef<any>(null);
 
   const fetchStatus = async () => {
@@ -51,9 +52,9 @@ export function YoutubeModule() {
 
   const onPlayerReady = (event: any) => {
     playerRef.current = event.target;
-    // Explicitly unmute and set volume to max to bypass hidden iframe restrictions
+    // Explicitly unmute and set volume to bypass hidden iframe restrictions
     event.target.unMute();
-    event.target.setVolume(100);
+    event.target.setVolume(volume);
     
     // Apply the currently loaded status immediately. 
     // We cannot use fetchStatus() here because the action_id hasn't changed since the initial mount fetch, 
@@ -66,6 +67,14 @@ export function YoutubeModule() {
         }
         return prev;
     });
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVol = parseInt(e.target.value);
+    setVolume(newVol);
+    if (playerRef.current) {
+        playerRef.current.setVolume(newVol);
+    }
   };
 
   const togglePlay = async () => {
@@ -121,7 +130,7 @@ export function YoutubeModule() {
     
     if (playerRef.current) {
         playerRef.current.unMute();
-        playerRef.current.setVolume(100);
+        playerRef.current.setVolume(volume);
         playerRef.current.loadVideoById(song.id);
         playerRef.current.playVideo();
     }
@@ -206,7 +215,7 @@ export function YoutubeModule() {
             </p>
             
             {status?.video_id && (
-              <div className="flex items-center gap-6">
+              <div className="flex flex-col items-center gap-6 w-full mt-4">
                 <div 
                   onClick={togglePlay}
                   className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:scale-105 transition-transform cursor-pointer"
@@ -216,6 +225,18 @@ export function YoutubeModule() {
                   ) : (
                     <Play className="w-6 h-6 text-black fill-black ml-1" />
                   )}
+                </div>
+                
+                <div className="flex items-center gap-3 w-full max-w-[200px]">
+                  <Volume2 className="w-5 h-5 text-red-400" />
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={volume} 
+                    onChange={handleVolumeChange}
+                    className="flex-1 h-1 bg-red-950 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-red-500 [&::-webkit-slider-thumb]:rounded-full"
+                  />
                 </div>
               </div>
             )}
