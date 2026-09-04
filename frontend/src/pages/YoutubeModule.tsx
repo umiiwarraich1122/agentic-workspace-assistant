@@ -182,6 +182,10 @@ export function YoutubeModule() {
                   videoId="rFZHOHl-L8A"
                   opts={opts} 
                   onReady={onPlayerReady} 
+                  onStateChange={(e: any) => {
+                      if (e.data === 1) setStatus((prev: any) => ({ ...prev, playing: true }));
+                      else if (e.data === 2 || e.data === 0) setStatus((prev: any) => ({ ...prev, playing: false }));
+                  }}
                   iframeClassName="w-full h-full"
               />
               {!status?.video_id && (
